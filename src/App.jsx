@@ -1,9 +1,11 @@
+
+import Layout from './components/layout/Layout'
+
 function App() {
-  return (
-    <>
-      <h1>헬로월드드</h1>
-    </>
-  )
+    return (
+        <Layout>
+        </Layout>
+    )
 }
 
 export default App
