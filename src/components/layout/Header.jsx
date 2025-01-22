@@ -1,59 +1,76 @@
-// import Link from "next/link"
-// import { siteConfig } from "@/config/site"
-// import { CommandMenu } from "@/components/command-menu"
-// import { Icons } from "@/components/icons"
-// import { MainNav } from "@/components/main-nav"
-// import { ModeSwitcher } from "@/components/mode-switcher"
-import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuIndicator,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
-  NavigationMenuViewport,
-} from "@/components/ui/navigation-menu"
+} from "@/components/ui/navigation-menu";
+import { Bell, Search } from "lucide-react";
+import React from "react";
 
+const navigationItems = [
+  { label: "포트폴리오", href: "#" },
+  { label: "커뮤니티", href: "#" },
+  { label: "종목 정보", href: "#" },
+];
 
-export default function Header() {
+export default function Frame() {
   return (
-    <header className="border-grid sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container-wrapper">
-        <div className="container flex h-14 items-center">
-          {/* <MainNav /> */}
-          <div className="flex flex-1 items-center justify-between gap-2 md:justify-end">
-            <div className="w-full flex-1 md:w-auto md:flex-none">
-              {/* <CommandMenu /> */}
-            </div>
-            <nav className="flex items-center gap-0.5">
-              <Button className="h-8 w-8 px-0">
-                {/* <Link
-                  href={siteConfig.links.github}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Icons.gitHub className="h-4 w-4" /> */}
-                  <span className="sr-only">GitHub</span>
-                {/* </Link> */}
-              </Button>
-              <NavigationMenu>
-                <NavigationMenuList>
-                  <NavigationMenuItem>
-                    아이템
-                  </NavigationMenuItem>
-                  <NavigationMenuItem>
-                    아이템2
-                  </NavigationMenuItem>
-                </NavigationMenuList>
-              </NavigationMenu>
+    <header className="w-full h-[131px] bg-white">
+      <div className="max-w-[1512px] mx-auto px-4 h-full flex items-center justify-between">
+        {/* Logo */}
+        <div className="flex items-center">
+          <h1 className="text-[32px] font-h1 font-extrabold">Stock Note</h1>
+        </div>
 
-              {/* <ModeSwitcher /> */}
-            </nav>
+        {/* Navigation */}
+        <NavigationMenu className="ml-8">
+          <NavigationMenuList>
+            {navigationItems.map((item) => (
+              <NavigationMenuItem key={item.label}>
+                <NavigationMenuLink
+                  className="px-[5px] py-2.5 text-black hover:bg-gray-100 rounded-[5px] font-h4 text-[16px]"
+                  href={item.href}
+                >
+                  {item.label}
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            ))}
+          </NavigationMenuList>
+        </NavigationMenu>
+
+        {/* Search Bar */}
+        <div className="relative flex-1 max-w-[430px] mx-4">
+          <div className="relative">
+            <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 w-[25px] h-[25px] text-gray-400" />
+            <Input
+              className="h-[38px] pl-14 rounded-[20px] border-black shadow-[0px_4px_4px_#00000040]"
+              placeholder="주식 종목 검색"
+            />
           </div>
+        </div>
+
+        {/* User Section */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Avatar className="w-[35px] h-[35px]">
+              <AvatarImage src="" alt="User avatar" />
+              <AvatarFallback>UN</AvatarFallback>
+            </Avatar>
+            <span className="font-h4 text-[16px]">주식은 못 말려</span>
+          </div>
+
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="w-[25px] h-[27px]" />
+          </Button>
+
+          <Button className="bg-variable-collection-primary text-white rounded-[5px] px-[15px] py-2.5">
+            로그아웃
+          </Button>
         </div>
       </div>
     </header>
-  )
+  );
 }
