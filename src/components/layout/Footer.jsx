@@ -1,4 +1,12 @@
 function Footer() {
+
+    console.log(import.meta.env.VITE_CORE_FRONT_BASE_URL);
+    console.log(import.meta.env.VITE_CORE_API_BASE_URL);
+
+    fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/test`)
+    .then(res => res.json())
+    .then(data => console.log(data));
+
     return (
         <footer className="bg-gray-800 text-white w-full py-4">
             <div className="max-w-7xl mx-auto px-4">
