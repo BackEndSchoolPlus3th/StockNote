@@ -15,7 +15,7 @@ const BLUE_COLORS = [
     '#B0C4FF', // 연한 파란색
 ];
 
-const PortfolioSummary = ({ stocks }) => {
+const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescription }) => {
     // 총 자산 계산
     const totalAsset = stocks.reduce((sum, stock) => sum + stock.pfstockTotalPrice, 0);
 
@@ -36,13 +36,13 @@ const PortfolioSummary = ({ stocks }) => {
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editPortfolio, setEditPortfolio] = useState({
-        name: "주식은 못 말려",
-        description: ""
+        name: portfolioName || "",
+        description: portfolioDescription || ""
     });
 
     const handleEditPortfolio = async () => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/1`, {
+            const response = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -55,14 +55,35 @@ const PortfolioSummary = ({ stocks }) => {
 
             if (response.ok) {
                 setIsEditModalOpen(false);
-                // TODO: 성공 메시지 표시
+                window.location.reload(); // 수정 후 페이지 새로고침
             } else {
                 console.error('포트폴리오 수정에 실패했습니다.');
-                // TODO: 에러 메시지 표시
             }
         } catch (error) {
             console.error('포트폴리오 수정 중 오류 발생:', error);
-            // TODO: 에러 메시지 표시
+        }
+    };
+
+    const handleDeletePortfolio = async () => {
+        if (!window.confirm('정말로 이 포트폴리오를 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                window.location.href = '/portfolio'; // 삭제 후 포트폴리오 페이지로 이동
+            } else {
+                console.error('포트폴리오 삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('포트폴리오 삭제 중 오류 발생:', error);
         }
     };
 
@@ -72,7 +93,7 @@ const PortfolioSummary = ({ stocks }) => {
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                     <img src={portfolioIcon} alt="Portfolio" className="w-10 h-10" />
-                    <span className="font-medium text-lg">{editPortfolio.name}</span>
+                    <span className="font-medium text-lg">{portfolioName}</span>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="ghost" size="icon" className="hover:bg-gray-100">
@@ -102,7 +123,10 @@ const PortfolioSummary = ({ stocks }) => {
                                     <Copy className="h-4 w-4" />
                                     <span>포트폴리오 복사</span>
                                 </DropdownMenu.Item>
-                                <DropdownMenu.Item className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 rounded-md text-red-600 outline-none">
+                                <DropdownMenu.Item
+                                    className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 rounded-md text-red-600 outline-none"
+                                    onSelect={handleDeletePortfolio}
+                                >
                                     <Trash2 className="h-4 w-4" />
                                     <span>삭제하기</span>
                                 </DropdownMenu.Item>
@@ -200,7 +224,7 @@ const PortfolioSummary = ({ stocks }) => {
                                     value={editPortfolio.name}
                                     onChange={(e) => setEditPortfolio({ ...editPortfolio, name: e.target.value })}
                                 />
-                                <p className="text-sm text-gray-500">제목: 주식은 못 말려</p>
+                                <p className="text-sm text-gray-500">제목: {editPortfolio.name}</p>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">설명</label>

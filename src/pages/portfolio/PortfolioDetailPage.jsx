@@ -13,21 +13,31 @@ import PortfolioSummary from "../../components/PortfolioSummary";
 const PortfolioDetailPage = () => {
     const { portfolioId } = useParams();
     const [stocks, setStocks] = useState([]);
+    const [portfolio, setPortfolio] = useState(null);
     const [activeTab, setActiveTab] = useState('종합자산');
 
     useEffect(() => {
-        fetchStocks();
+        fetchPortfolioAndStocks();
     }, [portfolioId]);
 
-    const fetchStocks = async () => {
+    const fetchPortfolioAndStocks = async () => {
         try {
-            const response = await fetch(`http://localhost:8090/api/v1/portfolios/${portfolioId}`);
-            const result = await response.json();
-            if (result.data) {
-                setStocks(result.data);
+            // 포트폴리오 정보 가져오기
+            const portfolioResponse = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios`);
+            const portfolioResult = await portfolioResponse.json();
+            const currentPortfolio = portfolioResult.data.find(p => p.id === parseInt(portfolioId));
+            if (currentPortfolio) {
+                setPortfolio(currentPortfolio);
+            }
+
+            // 주식 목록 가져오기
+            const stocksResponse = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`);
+            const stocksResult = await stocksResponse.json();
+            if (stocksResult.data) {
+                setStocks(stocksResult.data);
             }
         } catch (error) {
-            console.error('주식 목록을 불러오는데 실패했습니다:', error);
+            console.error('데이터를 불러오는데 실패했습니다:', error);
         }
     };
 
@@ -38,7 +48,14 @@ const PortfolioDetailPage = () => {
             {/* 왼쪽 컨테이너 */}
             <div className="w-1/2 p-6">
                 <div className="bg-white rounded-lg shadow-sm p-6">
-                    <PortfolioSummary stocks={stocks} />
+                    {portfolio && (
+                        <PortfolioSummary
+                            stocks={stocks}
+                            portfolioId={portfolioId}
+                            portfolioName={portfolio.name}
+                            portfolioDescription={portfolio.description}
+                        />
+                    )}
                 </div>
             </div>
 
