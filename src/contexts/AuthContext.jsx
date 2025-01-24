@@ -29,7 +29,7 @@ const AuthProvider = ({ children }) => {
         localStorage.setItem('accessToken', accessToken);
 
         // 사용자 프로필 가져오기
-        const response = await axios.get('http://localhost:8090/api/user/profile', {
+        const response = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/user/profile`, {
           headers: {
             Authorization: `Bearer ${accessToken}`
           }
@@ -65,13 +65,13 @@ const AuthProvider = ({ children }) => {
     try {
       const savedToken = localStorage.getItem('accessToken');
       if (!savedToken) return;
-  
+
       const response = await axios.get('/api/user/profile', {
         headers: {
           Authorization: `Bearer ${savedToken}`
         }
       });
-  
+
       setUser(response.data.data);
       setIsAuthenticated(true);
     } catch (error) {
@@ -81,19 +81,19 @@ const AuthProvider = ({ children }) => {
       setIsLoading(false);
     }
   };
-  
+
   useEffect(() => {
     const initializeAuth = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const accessToken = urlParams.get('accessToken');
-  
+
       if (accessToken) {
         await handleOAuth2Login();
       } else {
         await loadUserProfile(); // 저장된 토큰으로 로그인 시도
       }
     };
-  
+
     initializeAuth();
   }, []);
 
@@ -110,7 +110,7 @@ const AuthProvider = ({ children }) => {
 
           // 로그아웃 처리
           logout();
-          
+
           // 로그인 페이지로 리다이렉트
           window.location.href = '/login';
         }

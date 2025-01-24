@@ -1,12 +1,16 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Bell, Search } from "lucide-react";
-import React from "react";
 import { useAuth } from '@/contexts/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuLink
+} from "@/components/ui/navigation-menu";
 
 const navigationItems = [
   { label: "포트폴리오", href: "/portfolio" },
@@ -34,19 +38,19 @@ export default function Frame() {
         </Link>
 
         <NavigationMenu className="ml-8">
-        <NavigationMenuList className="flex gap-8">  {/* 여기에 gap 추가 */}
-          {navigationItems.map((item) => (
-            <NavigationMenuItem key={item.label}>
-              <NavigationMenuLink
-                className="px-[5px] py-2.5 text-black hover:bg-gray-100 rounded-[5px] font-h4 text-[16px]"
-                href={item.href}
-              >
-                {item.label}
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-          ))}
-        </NavigationMenuList>
-      </NavigationMenu>
+          <NavigationMenuList className="flex gap-8">  {/* 여기에 gap 추가 */}
+            {navigationItems.map((item) => (
+              <NavigationMenuItem key={item.label}>
+                <Link
+                  to={item.href}  // href를 to로 변경
+                  className="px-[5px] py-2.5 text-black hover:bg-gray-100 rounded-[5px] font-h4 text-[16px]"
+                >
+                  {item.label}
+                </Link>
+              </NavigationMenuItem>
+            ))}
+          </NavigationMenuList>
+        </NavigationMenu>
 
 
         {/* Search Bar */}
@@ -62,36 +66,36 @@ export default function Frame() {
 
         {/* User Section - Conditional Rendering */}
         <div className="flex items-center gap-4">
-        {isAuthenticated ? (
-    <>
-      <div className="flex items-center gap-2">
-        <Avatar className="w-[35px] h-[35px]">
-          <AvatarImage src={user?.profile|| "https://github.com/shadcn.png"} alt="User avatar" />
-          <AvatarFallback>{user?.name?.[0] || 'UN'}</AvatarFallback>
-        </Avatar>
-        <span className="font-h4 text-[16px]">{user?.name || "사용자"}</span>
-      </div>
+          {isAuthenticated ? (
+            <>
+              <div className="flex items-center gap-2">
+                <Avatar className="w-[35px] h-[35px]">
+                  <AvatarImage src={user?.profile || "https://github.com/shadcn.png"} alt="User avatar" />
+                  <AvatarFallback>{user?.name?.[0] || 'UN'}</AvatarFallback>
+                </Avatar>
+                <span className="font-h4 text-[16px]">{user?.name || "사용자"}</span>
+              </div>
 
-      <Button variant="ghost" size="icon" className="relative">
-        <Bell className="w-[25px] h-[27px]" />
-      </Button>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="w-[25px] h-[27px]" />
+              </Button>
 
-      <Button 
-        onClick={handleLogout}
-        className="bg-variable-collection-primary text-white rounded-[5px] px-[15px] py-2.5"
-      >
-        로그아웃
-      </Button>
-    </>
-  ) : (
-    // 여기가 실행되어야 로그인 버튼이 보임
-    <Button 
-  className="bg-[#3B82F6] text-white rounded-lg px-4 py-2"
-  onClick={() => navigate('/login')} 
->
-  로그인 
-</Button>
-  )}
+              <Button
+                onClick={handleLogout}
+                className="bg-variable-collection-primary text-white rounded-[5px] px-[15px] py-2.5"
+              >
+                로그아웃
+              </Button>
+            </>
+          ) : (
+            // 여기가 실행되어야 로그인 버튼이 보임
+            <Button
+              className="bg-[#3B82F6] text-white rounded-lg px-4 py-2"
+              onClick={() => navigate('/login')}
+            >
+              로그인
+            </Button>
+          )}
 
         </div>
       </div>

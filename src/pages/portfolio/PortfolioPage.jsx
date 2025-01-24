@@ -34,7 +34,7 @@ const PortfolioPage = () => {
 
     const fetchPortfolios = async () => {
         try {
-            const response = await fetch('http://localhost:8090/api/v1/portfolios');
+            const response = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios`);
             const result = await response.json();
 
             if (result.data) {
@@ -47,7 +47,7 @@ const PortfolioPage = () => {
 
     const handleAddPortfolio = async () => {
         try {
-            const response = await fetch('http://localhost:8090/api/v1/portfolios', {
+            const response = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
