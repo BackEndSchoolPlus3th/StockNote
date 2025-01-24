@@ -42,6 +42,7 @@ const PortfolioDetailPage = () => {
         }
     };
 
+
     const handleDeleteStock = async (portfolioId, stockId) => {
         if (!window.confirm('정말 이 종목을 삭제하시겠습니까?')) {
             return;

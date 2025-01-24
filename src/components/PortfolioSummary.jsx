@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, MoreHorizontal, Pencil, Copy, Trash2, Search } from 'lucide-react';
+
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import portfolioIcon from '../assets/portfolio-icon.svg';
@@ -499,6 +501,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                 </div>
             )}
 
+
             {/* 총자산 정보 */}
             <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm text-gray-500">총자산</div>
@@ -512,6 +515,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                 <button className="px-4 py-2 text-gray-500 hover:text-gray-700">코스피</button>
                 <button className="px-4 py-2 text-gray-500 hover:text-gray-700">코스닥</button>
             </div>
+
 
             {/* 종목별 비중과 파이 차트 */}
             <div className="flex gap-8">
