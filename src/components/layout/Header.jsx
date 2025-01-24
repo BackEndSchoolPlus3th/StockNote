@@ -1,21 +1,17 @@
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu";
 import { Bell, Search } from "lucide-react";
 import React from "react";
 import { useAuth } from '@/contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 
 const navigationItems = [
-  { label: "포트폴리오", href: "#" },
-  { label: "커뮤니티", href: "#" },
-  { label: "종목 정보", href: "#" },
+  { label: "포트폴리오", href: "/portfolio" },
+  { label: "커뮤니티", href: "/community" },
+  { label: "종목 정보", href: "/stocks" },
 ];
 
 export default function Frame() {
@@ -27,10 +23,12 @@ export default function Frame() {
     navigate('/');
   };
 
+
   return (
     <header className="w-full h-[131px] bg-white">
       <div className="max-w-[1512px] mx-auto px-4 h-full flex items-center justify-between">
         {/* Logo */}
+
         <Link to="/" className="flex items-center cursor-pointer">
           <h1 className="text-[32px] font-h1 font-extrabold">Stock Note</h1>
         </Link>
@@ -49,6 +47,7 @@ export default function Frame() {
           ))}
         </NavigationMenuList>
       </NavigationMenu>
+
 
         {/* Search Bar */}
         <div className="relative flex-1 max-w-[430px] mx-4">
@@ -93,6 +92,7 @@ export default function Frame() {
   로그인 
 </Button>
   )}
+
         </div>
       </div>
     </header>
