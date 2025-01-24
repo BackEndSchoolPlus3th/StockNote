@@ -15,6 +15,7 @@ const PortfolioDetailPage = () => {
     const [stocks, setStocks] = useState([]);
     const [portfolio, setPortfolio] = useState(null);
     const [activeTab, setActiveTab] = useState('종합자산');
+    const [isEditMode, setIsEditMode] = useState(false);
 
     useEffect(() => {
         fetchPortfolioAndStocks();
@@ -38,6 +39,32 @@ const PortfolioDetailPage = () => {
             }
         } catch (error) {
             console.error('데이터를 불러오는데 실패했습니다:', error);
+        }
+    };
+
+
+    const handleDeleteStock = async (portfolioId, stockId) => {
+        if (!window.confirm('정말 이 종목을 삭제하시겠습니까?')) {
+            return;
+        }
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/stocks/${stockId}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                }
+            );
+
+            if (response.ok) {
+                fetchPortfolioAndStocks(); // 목록 새로고침
+            } else {
+                alert('종목 삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('종목 삭제 중 오류 발생:', error);
         }
     };
 
@@ -91,7 +118,13 @@ const PortfolioDetailPage = () => {
                                 <DropdownMenuItem>종목명 순</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button variant="outline">편집</Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsEditMode(!isEditMode)}
+                            className={isEditMode ? "bg-blue-100" : ""}
+                        >
+                            {isEditMode ? "완료" : "편집"}
+                        </Button>
                     </div>
 
                     {/* 주식 목록 */}
@@ -112,6 +145,27 @@ const PortfolioDetailPage = () => {
                                         <span className="font-medium">{stock.pfstockCount.toLocaleString()}</span>
                                     </div>
                                 </div>
+
+                                {/* 편집 버튼 영역 */}
+                                {isEditMode && (
+                                    <div className="flex gap-2 border-b pb-2">
+                                        <button className="flex-1 py-1 px-3 text-sm rounded hover:bg-gray-100">
+                                            매수
+                                        </button>
+                                        <button className="flex-1 py-1 px-3 text-sm rounded hover:bg-gray-100">
+                                            매도
+                                        </button>
+                                        <button className="flex-1 py-1 px-3 text-sm rounded hover:bg-gray-100">
+                                            수정
+                                        </button>
+                                        <button
+                                            className="flex-1 py-1 px-3 text-sm rounded text-red-600 hover:bg-red-50"
+                                            onClick={() => handleDeleteStock(portfolioId, stock.id)}
+                                        >
+                                            삭제
+                                        </button>
+                                    </div>
+                                )}
 
                                 {/* 하단 영역: 자산가치, 수익, 평균단가, 현재가 */}
                                 <div className="grid grid-cols-2 gap-4">
