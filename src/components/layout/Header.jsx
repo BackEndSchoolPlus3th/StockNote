@@ -1,45 +1,44 @@
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu";
 import { Bell, Search } from "lucide-react";
-import React from "react";
 
 const navigationItems = [
-  { label: "포트폴리오", href: "#" },
-  { label: "커뮤니티", href: "#" },
-  { label: "종목 정보", href: "#" },
+  { label: "포트폴리오", href: "/portfolio" },
+  { label: "커뮤니티", href: "/community" },
+  { label: "종목 정보", href: "/stocks" },
 ];
 
-export default function Frame() {
+export default function Header() {
+  const location = useLocation();
+
   return (
     <header className="w-full h-[131px] bg-white">
       <div className="max-w-[1512px] mx-auto px-4 h-full flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
-          <h1 className="text-[32px] font-h1 font-extrabold">Stock Note</h1>
+          <Link to="/">
+            <h1 className="text-[32px] font-h1 font-extrabold">Stock Note</h1>
+          </Link>
         </div>
 
         {/* Navigation */}
-        <NavigationMenu className="ml-8">
-          <NavigationMenuList>
-            {navigationItems.map((item) => (
-              <NavigationMenuItem key={item.label}>
-                <NavigationMenuLink
-                  className="px-[5px] py-2.5 text-black hover:bg-gray-100 rounded-[5px] font-h4 text-[16px]"
-                  href={item.href}
-                >
-                  {item.label}
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
+        <nav className="flex ml-8 space-x-4">
+          {navigationItems.map((item) => (
+            <Link
+              key={item.label}
+              to={item.href}
+              className={`px-[5px] py-2.5 rounded-[5px] font-h4 text-[16px] ${location.pathname === item.href
+                  ? "text-blue-600"
+                  : "text-black hover:bg-gray-100"
+                }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
 
         {/* Search Bar */}
         <div className="relative flex-1 max-w-[430px] mx-4">
@@ -66,7 +65,7 @@ export default function Frame() {
             <Bell className="w-[25px] h-[27px]" />
           </Button>
 
-          <Button className="bg-variable-collection-primary text-white rounded-[5px] px-[15px] py-2.5">
+          <Button className="bg-primary text-white rounded-[5px] px-[15px] py-2.5">
             로그아웃
           </Button>
         </div>
