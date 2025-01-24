@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, MoreHorizontal, Pencil, Copy, Trash2, Search } from 'lucide-react';
+
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import portfolioIcon from '../assets/portfolio-icon.svg';
@@ -37,23 +39,6 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
         });
     }, [portfolioName, portfolioDescription]);
 
-    // 총 자산 계산
-    const totalAsset = stocks.reduce((sum, stock) => sum + stock.pfstockTotalPrice, 0);
-
-    // 종목별 비중 계산
-    const stockRatios = stocks.map((stock, index) => ({
-        name: stock.stockName,
-        ratio: (stock.pfstockTotalPrice / totalAsset * 100).toFixed(1),
-        amount: stock.pfstockTotalPrice,
-        fill: BLUE_COLORS[index % BLUE_COLORS.length]
-    }));
-
-    // 분야별 비중 계산 (임시 데이터)
-    const sectorRatios = [
-        { name: "제약/의료", ratio: "44.9", color: "bg-[#4318FF]" },
-        { name: "전자", ratio: "35.1", color: "bg-[#6AD2FF]" },
-        { name: "현금", ratio: "20.0", color: "bg-[#A3AED0]" }
-    ];
 
     const fetchStockList = async () => {
         try {
@@ -192,12 +177,6 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
         }
     };
 
-    return (
-        <div className="flex flex-col gap-6">
-            {/* 헤더 영역 */}
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                    <img src={portfolioIcon} alt="Portfolio" className="w-10 h-10" />
                     <span className="font-medium text-lg">
                         {portfolioName || "포트폴리오"}
                     </span>
@@ -212,6 +191,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                             setIsAddModalOpen(true);
                         }}
                     >
+
                         <Plus className="h-5 w-5 text-gray-600" />
                     </Button>
                     <DropdownMenu.Root>
@@ -499,19 +479,6 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                 </div>
             )}
 
-            {/* 총자산 정보 */}
-            <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
-                <div className="text-sm text-gray-500">총자산</div>
-                <div className="text-2xl font-bold">{totalAsset.toLocaleString()}원</div>
-                <div className="text-green-500 font-medium">평가 손익 + 300,000원(+19.7%)</div>
-            </div>
-
-            {/* 자산 구성 탭 */}
-            <div className="flex gap-4 border-b">
-                <button className="px-4 py-2 text-blue-600 border-b-2 border-blue-600 font-medium">자산구성</button>
-                <button className="px-4 py-2 text-gray-500 hover:text-gray-700">코스피</button>
-                <button className="px-4 py-2 text-gray-500 hover:text-gray-700">코스닥</button>
-            </div>
 
             {/* 종목별 비중과 파이 차트 */}
             <div className="flex gap-8">
