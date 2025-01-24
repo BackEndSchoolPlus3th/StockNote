@@ -13,7 +13,7 @@ function Footer() {
                 <div className="flex justify-between items-center">
                     <div>
                         <div className="flex items-center space-x-2 mb-4">
-                            <h2 className="text-2xl font-bold">Tech Blocks</h2>
+                            <h2 className="text-2xl font-bold">Stock Note</h2>
                         </div>
                     </div>
                     <div className="flex space-x-6 text-sm">
