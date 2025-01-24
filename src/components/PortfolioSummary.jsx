@@ -1,8 +1,10 @@
-import React from 'react';
-import { Plus, MoreHorizontal } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, MoreHorizontal, Pencil, Copy, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
 import portfolioIcon from '../assets/portfolio-icon.svg';
 import { PieChart, Pie } from 'recharts';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 // 파란색 계열의 색상 팔레트
 const BLUE_COLORS = [
@@ -13,10 +15,10 @@ const BLUE_COLORS = [
     '#B0C4FF', // 연한 파란색
 ];
 
-const PortfolioSummary = ({ stocks }) => {
+const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescription }) => {
     // 총 자산 계산
     const totalAsset = stocks.reduce((sum, stock) => sum + stock.pfstockTotalPrice, 0);
-    
+
     // 종목별 비중 계산
     const stockRatios = stocks.map((stock, index) => ({
         name: stock.stockName,
@@ -32,21 +34,105 @@ const PortfolioSummary = ({ stocks }) => {
         { name: "현금", ratio: "20.0", color: "bg-[#A3AED0]" }
     ];
 
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editPortfolio, setEditPortfolio] = useState({
+        name: portfolioName || "",
+        description: portfolioDescription || ""
+    });
+
+    const handleEditPortfolio = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: editPortfolio.name,
+                    description: editPortfolio.description
+                })
+            });
+
+            if (response.ok) {
+                setIsEditModalOpen(false);
+                window.location.reload(); // 수정 후 페이지 새로고침
+            } else {
+                console.error('포트폴리오 수정에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('포트폴리오 수정 중 오류 발생:', error);
+        }
+    };
+
+    const handleDeletePortfolio = async () => {
+        if (!window.confirm('정말로 이 포트폴리오를 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                window.location.href = '/portfolio'; // 삭제 후 포트폴리오 페이지로 이동
+            } else {
+                console.error('포트폴리오 삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('포트폴리오 삭제 중 오류 발생:', error);
+        }
+    };
+
     return (
         <div className="flex flex-col gap-6">
             {/* 헤더 영역 */}
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                     <img src={portfolioIcon} alt="Portfolio" className="w-10 h-10" />
-                    <span className="font-medium text-lg">주식은 못 말려</span>
+                    <span className="font-medium text-lg">{portfolioName}</span>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="ghost" size="icon" className="hover:bg-gray-100">
                         <Plus className="h-5 w-5 text-gray-600" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="hover:bg-gray-100">
-                        <MoreHorizontal className="h-5 w-5 text-gray-600" />
-                    </Button>
+                    <DropdownMenu.Root>
+                        <DropdownMenu.Trigger asChild>
+                            <Button variant="ghost" size="icon" className="hover:bg-gray-100">
+                                <MoreHorizontal className="h-5 w-5 text-gray-600" />
+                            </Button>
+                        </DropdownMenu.Trigger>
+                        <DropdownMenu.Portal>
+                            <DropdownMenu.Content
+                                className="min-w-[200px] bg-white rounded-lg shadow-lg p-2 z-50"
+                                sideOffset={5}
+                                align="end"
+                                side="bottom"
+                            >
+                                <DropdownMenu.Item
+                                    className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 rounded-md outline-none"
+                                    onSelect={() => setIsEditModalOpen(true)}
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                    <span>포트폴리오 수정</span>
+                                </DropdownMenu.Item>
+                                <DropdownMenu.Item className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 rounded-md outline-none">
+                                    <Copy className="h-4 w-4" />
+                                    <span>포트폴리오 복사</span>
+                                </DropdownMenu.Item>
+                                <DropdownMenu.Item
+                                    className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 rounded-md text-red-600 outline-none"
+                                    onSelect={handleDeletePortfolio}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span>삭제하기</span>
+                                </DropdownMenu.Item>
+                            </DropdownMenu.Content>
+                        </DropdownMenu.Portal>
+                    </DropdownMenu.Root>
                 </div>
             </div>
 
@@ -64,6 +150,7 @@ const PortfolioSummary = ({ stocks }) => {
                 <button className="px-4 py-2 text-gray-500 hover:text-gray-700">코스닥</button>
             </div>
 
+            {/* 컨벤션수정 */}
             {/* 종목별 비중과 파이 차트 */}
             <div className="flex gap-8">
                 {/* 파이 차트 */}
@@ -123,6 +210,48 @@ const PortfolioSummary = ({ stocks }) => {
                     ))}
                 </div>
             </div>
+
+            {/* 포트폴리오 수정 모달 */}
+            {isEditModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-96">
+                        <h2 className="text-xl font-bold mb-4">포트폴리오 수정</h2>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">포트폴리오 이름</label>
+                                <Input
+                                    type="text"
+                                    value={editPortfolio.name}
+                                    onChange={(e) => setEditPortfolio({ ...editPortfolio, name: e.target.value })}
+                                />
+                                <p className="text-sm text-gray-500">제목: {editPortfolio.name}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">설명</label>
+                                <Input
+                                    type="text"
+                                    value={editPortfolio.description}
+                                    onChange={(e) => setEditPortfolio({ ...editPortfolio, description: e.target.value })}
+                                />
+                                <p className="text-sm text-gray-500">설명: {editPortfolio.description || "설명이 없습니다."}</p>
+                            </div>
+                            <div className="flex justify-end space-x-3">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsEditModalOpen(false)}
+                                >
+                                    취소
+                                </Button>
+                                <Button
+                                    onClick={handleEditPortfolio}
+                                >
+                                    수정
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
