@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, MoreHorizontal, Pencil, Copy, Trash2, Search } from 'lucide-react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import portfolioIcon from '../assets/portfolio-icon.svg';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import portfolioIcon from '../../assets/portfolio-icon.svg';
 import { PieChart, Pie } from 'recharts';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 

@@ -9,7 +9,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
-import PortfolioSummary from "../../components/PortfolioSummary";
+import PortfolioSummary from "./PortfolioSummary";
 
 const PortfolioDetailPage = () => {
     const { portfolioId } = useParams();

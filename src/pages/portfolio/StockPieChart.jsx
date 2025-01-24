@@ -11,12 +11,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "./ui/card"
+} from "../../components/ui/card"
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "./ui/chart"
+} from "../../components/ui/chart"
 
 const StockPieChart = ({ stocks }) => {
   // 차트 데이터 생성
