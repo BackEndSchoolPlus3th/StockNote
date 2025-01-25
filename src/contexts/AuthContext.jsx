@@ -16,22 +16,24 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  // const [accessToken, setAccessToken] = useState(null);
 
   // OAuth2 로그인 후 토큰 처리 함수
   const handleOAuth2Login = async () => {
     try {
       // URL에서 accessToken 파싱
       const urlParams = new URLSearchParams(window.location.search);
-      const accessToken = urlParams.get('accessToken');
+      const token = urlParams.get('accessToken');
 
-      if (accessToken) {
+      if (token) {
         // 토큰 로컬 스토리지 저장
-        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('accessToken', token);
+        // setAccessToken(token);
 
         // 사용자 프로필 가져오기
         const response = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/user/profile`, {
           headers: {
-            Authorization: `Bearer ${accessToken}`
+            Authorization: `Bearer ${token}`
           }
         });
 

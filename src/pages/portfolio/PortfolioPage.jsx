@@ -5,9 +5,12 @@ import plusIcon from '../../assets/ic-baseline-plus.svg';
 import arrowIcon from '../../assets/weui-arrow-filled.svg';
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
+import { useAuth } from '../../contexts/AuthContext'; //useAuth 훅 가져오기
+import axios from 'axios';
 
 const PortfolioPage = () => {
     const navigate = useNavigate();
+    const { accessToken } = useAuth(); //useAuth 훅 사용해서 accessToken 가져오기
     const [portfolios, setPortfolios] = useState([]);
     const [totalStats, setTotalStats] = useState({
         totalAssets: 0,
@@ -20,8 +23,10 @@ const PortfolioPage = () => {
     });
 
     useEffect(() => {
-        fetchPortfolios();
-    }, []);
+        if (accessToken) {
+            fetchPortfolios();
+        }
+    }, [accessToken]); // accessToken이 변경될 때마다 실행
 
     useEffect(() => {
         const total = portfolios.reduce((acc, portfolio) => ({
@@ -34,8 +39,11 @@ const PortfolioPage = () => {
 
     const fetchPortfolios = async () => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios`);
-            const result = await response.json();
+            const result = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}` // 다 axios로 변경하고 accessToken 추가
+                }
+            });
 
             if (result.data) {
                 setPortfolios(result.data);
@@ -47,15 +55,14 @@ const PortfolioPage = () => {
 
     const handleAddPortfolio = async () => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios`, {
-                method: 'POST',
+            const response = await axios.post(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios`, newPortfolio, {
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newPortfolio)
+                    'Authorization': `Bearer ${accessToken}` // 다 axios로 변경하고 accessToken 추가
+                }
             });
-
-            if (response.ok) {
+    
+            if (response.status === 201) { // 201 Created
                 setIsModalOpen(false);
                 setNewPortfolio({ name: '', description: '' });
                 await fetchPortfolios();
