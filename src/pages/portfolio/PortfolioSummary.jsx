@@ -111,7 +111,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                     'Authorization': `Bearer ${accessToken}`
                 }
             });
-    
+
             if (response.status === 200) { // 200 OK
                 setIsEditModalOpen(false);
                 window.location.reload(); // 수정 후 페이지 새로고침
@@ -127,7 +127,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
         if (!window.confirm('정말로 이 포트폴리오를 삭제하시겠습니까?')) {
             return;
         }
-    
+
         try {
             const response = await axios.delete(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
                 headers: {
@@ -135,8 +135,8 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                     'Authorization': `Bearer ${accessToken}`
                 }
             });
-    
-            if (response.status === 204) { // 204 No Content
+
+            if (response.status === 200) { // 204 No Content
                 window.location.href = '/portfolio'; // 삭제 후 포트폴리오 페이지로 이동
             } else {
                 console.error('포트폴리오 삭제에 실패했습니다.');
@@ -159,7 +159,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
             alert('종목, 수량, 평균단가를 모두 입력해주세요.');
             return;
         }
-    
+
         try {
             const response = await axios.post(
                 `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/stocks/AddStock`,
@@ -176,7 +176,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                     }
                 }
             );
-    
+
             if (response.status === 200) { // 200 OK
                 alert('종목이 추가되었습니다.');
                 setIsAddModalOpen(false);

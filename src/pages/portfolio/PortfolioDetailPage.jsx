@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";  // 이 줄 추가
+import { Input } from "../../components/ui/input";
 import { ChevronDown } from "lucide-react";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../components/ui/dropdown-menu";
 import PortfolioSummary from "./PortfolioSummary";
 import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
 
 const PortfolioDetailPage = () => {
-    const {accessToken} = useAuth();
+    const { accessToken } = useAuth();
     const { portfolioId } = useParams();
     const [stocks, setStocks] = useState([]);
     const [portfolio, setPortfolio] = useState(null);
@@ -27,6 +22,8 @@ const PortfolioDetailPage = () => {
         pfstockPrice: ''
     });
 
+    const tabs = ['종합자산', '코스피', '코스닥', '매매일지'];
+
     useEffect(() => {
         if (accessToken) {
             fetchPortfolioAndStocks();
@@ -35,31 +32,31 @@ const PortfolioDetailPage = () => {
 
     const fetchPortfolioAndStocks = async () => {
         try {
-            // 포트폴리오 정보 가져오기
-            const portfolioResponse = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            });
-            const currentPortfolio = portfolioResponse.data;
-            setPortfolio(currentPortfolio);
+            const [portfolioResponse, stocksResponse] = await Promise.all([
+                axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                }),
+                axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                })
+            ]);
 
-            // 주식 목록 가져오기
-            const stocksResponse = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/stocks`, {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            });
-            setStocks(stocksResponse.data);
+            const currentPortfolio = portfolioResponse.data.data.find(p => p.id === parseInt(portfolioId));
+            if (currentPortfolio) {
+                setPortfolio(currentPortfolio);
+            }
+
+            if (stocksResponse.data.data) {
+                setStocks(stocksResponse.data.data);
+            }
         } catch (error) {
-            console.error('Error fetching portfolio and stocks:', error);
+            console.error('데이터를 불러오는데 실패했습니다:', error);
         }
     };
 
     const handleDeleteStock = async (portfolioId, stockId) => {
-        if (!window.confirm('정말 이 종목을 삭제하시겠습니까?')) {
-            return;
-        }
+        if (!window.confirm('정말 이 종목을 삭제하시겠습니까?')) return;
+
         try {
             const response = await axios.delete(
                 `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/stocks/${stockId}`,
@@ -69,9 +66,9 @@ const PortfolioDetailPage = () => {
                     }
                 }
             );
-    
-            if (response.status === 204) { // 204 No Content
-                fetchPortfolioAndStocks(); // 목록 새로고침
+
+            if (response.status === 200) {
+                fetchPortfolioAndStocks();
             } else {
                 alert('종목 삭제에 실패했습니다.');
             }
@@ -79,7 +76,7 @@ const PortfolioDetailPage = () => {
             console.error('종목 삭제 중 오류 발생:', error);
         }
     };
-    
+
     const handleEditClick = (stock) => {
         setEditingStock(stock);
         setEditingStockData({
@@ -88,7 +85,7 @@ const PortfolioDetailPage = () => {
         });
         setIsEditModalOpen(true);
     };
-    
+
     const handleUpdateStock = async () => {
         try {
             const response = await axios.patch(
@@ -104,12 +101,12 @@ const PortfolioDetailPage = () => {
                     }
                 }
             );
-    
-            if (response.status === 200) { // 200 OK
+
+            if (response.status === 200) {
                 alert('종목이 수정되었습니다.');
                 setIsEditModalOpen(false);
                 setEditingStock(null);
-                fetchPortfolioAndStocks(); // 목록 새로고침
+                fetchPortfolioAndStocks();
             } else {
                 alert('종목 수정에 실패했습니다.');
             }
@@ -118,8 +115,6 @@ const PortfolioDetailPage = () => {
             alert('종목 수정 중 오류가 발생했습니다.');
         }
     };
-
-    const tabs = ['종합자산', '코스피', '코스닥', '매매일지'];
 
     return (
         <div className="flex h-screen bg-gray-50">
@@ -182,7 +177,6 @@ const PortfolioDetailPage = () => {
                     <div className="space-y-4">
                         {stocks.map((stock) => (
                             <div key={stock.id} className="p-4 border rounded-lg space-y-4">
-                                {/* 상단 영역: 종목명, 수량 */}
                                 <div className="flex justify-between items-center">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 bg-gray-100 rounded-full"></div>
@@ -197,33 +191,21 @@ const PortfolioDetailPage = () => {
                                     </div>
                                 </div>
 
-                                {/* 편집 버튼 영역 */}
                                 {isEditMode && (
                                     <div className="flex gap-2 border-b pb-2">
-                                        <>
-                                            <button className="flex-1 py-1 px-3 text-sm rounded hover:bg-gray-100">
-                                                매수
-                                            </button>
-                                            <button className="flex-1 py-1 px-3 text-sm rounded hover:bg-gray-100">
-                                                매도
-                                            </button>
-                                            <button
-                                                className="flex-1 py-1 px-3 text-sm rounded hover:bg-gray-100"
-                                                onClick={() => handleEditClick(stock)}
-                                            >
-                                                수정
-                                            </button>
-                                            <button
-                                                className="flex-1 py-1 px-3 text-sm rounded text-red-600 hover:bg-red-50"
-                                                onClick={() => handleDeleteStock(portfolioId, stock.id)}
-                                            >
-                                                삭제
-                                            </button>
-                                        </>
+                                        <button className="flex-1 py-1 px-3 text-sm rounded hover:bg-gray-100">매수</button>
+                                        <button className="flex-1 py-1 px-3 text-sm rounded hover:bg-gray-100">매도</button>
+                                        <button
+                                            className="flex-1 py-1 px-3 text-sm rounded hover:bg-gray-100"
+                                            onClick={() => handleEditClick(stock)}
+                                        >수정</button>
+                                        <button
+                                            className="flex-1 py-1 px-3 text-sm rounded text-red-600 hover:bg-red-50"
+                                            onClick={() => handleDeleteStock(portfolioId, stock.id)}
+                                        >삭제</button>
                                     </div>
                                 )}
 
-                                {/* 하단 영역: 자산가치, 수익, 평균단가, 현재가 */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <div className="flex justify-between text-sm">

@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import PortfolioPage from './pages/portfolio/PortfolioPage';
 import PortfolioDetailPage from './pages/portfolio/PortfolioDetailPage';
-import MainPage from './stock/pages/MainPage';
+import MainPage from './pages/stock/MainPage';
 import Login from './pages/Login';
 
 function App() {

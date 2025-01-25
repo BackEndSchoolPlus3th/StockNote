@@ -39,17 +39,25 @@ const PortfolioPage = () => {
 
     const fetchPortfolios = async () => {
         try {
+            console.log("get 요청 ")
             const result = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios`, {
                 headers: {
-                    'Authorization': `Bearer ${accessToken}` // 다 axios로 변경하고 accessToken 추가
+                    'Authorization': `Bearer ${accessToken}`
                 }
             });
 
-            if (result.data) {
-                setPortfolios(result.data);
+            // 백엔드 응답 구조에 맞게 데이터 추출
+            if (result.data && result.data.data) {
+                setPortfolios(result.data.data);
+            } else {
+                setPortfolios([]); // 데이터가 없는 경우 빈 배열로 설정
             }
+
+            // 디버깅을 위한 로그
+            console.log("받은 데이터:", result.data);
         } catch (error) {
             console.error('포트폴리오 목록을 불러오는데 실패했습니다:', error);
+            setPortfolios([]); // 에러 발생시 빈 배열로 설정
         }
     };
 
@@ -61,7 +69,7 @@ const PortfolioPage = () => {
                     'Authorization': `Bearer ${accessToken}` // 다 axios로 변경하고 accessToken 추가
                 }
             });
-    
+
             if (response.status === 201) { // 201 Created
                 setIsModalOpen(false);
                 setNewPortfolio({ name: '', description: '' });
