@@ -5,6 +5,8 @@ import { Input } from '../../components/ui/input';
 import portfolioIcon from '../../assets/portfolio-icon.svg';
 import { PieChart, Pie } from 'recharts';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { useAuth } from '../../contexts/AuthContext';
+import axios from 'axios';
 
 // 파란색 계열의 색상 팔레트
 const BLUE_COLORS = [
@@ -16,6 +18,7 @@ const BLUE_COLORS = [
 ];
 
 const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescription }) => {
+    const { accessToken } = useAuth();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -57,15 +60,15 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
 
     const fetchStockList = async () => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/tempStock`, {
-                method: 'GET',
+            const response = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/tempStock`, {
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
                 }
             });
 
-            if (response.ok) {
-                const data = await response.json();
+            if (response.status === 200) {
+                const data = response.data;
                 console.log('API 응답 전체:', data.data); // 전체 응답 구조 확인
 
                 if (data.data) {
@@ -99,18 +102,17 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
 
     const handleEditPortfolio = async () => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
-                method: 'PATCH',
+            const response = await axios.patch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
+                name: editPortfolio.name,
+                description: editPortfolio.description
+            }, {
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: editPortfolio.name,
-                    description: editPortfolio.description
-                })
+                    'Authorization': `Bearer ${accessToken}`
+                }
             });
-
-            if (response.ok) {
+    
+            if (response.status === 200) { // 200 OK
                 setIsEditModalOpen(false);
                 window.location.reload(); // 수정 후 페이지 새로고침
             } else {
@@ -125,16 +127,16 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
         if (!window.confirm('정말로 이 포트폴리오를 삭제하시겠습니까?')) {
             return;
         }
-
+    
         try {
-            const response = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
-                method: 'DELETE',
+            const response = await axios.delete(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
                 }
             });
-
-            if (response.ok) {
+    
+            if (response.status === 204) { // 204 No Content
                 window.location.href = '/portfolio'; // 삭제 후 포트폴리오 페이지로 이동
             } else {
                 console.error('포트폴리오 삭제에 실패했습니다.');
@@ -157,25 +159,25 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
             alert('종목, 수량, 평균단가를 모두 입력해주세요.');
             return;
         }
-
+    
         try {
-            const response = await fetch(
+            const response = await axios.post(
                 `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/stocks/AddStock`,
                 {
-                    method: 'POST',
+                    pfstockCount: parseInt(quantity),
+                    pfstockPrice: parseInt(averagePrice),
+                    stockName: selectedStock.name,
+                    stockCode: selectedStock.code
+                },
+                {
                     headers: {
                         'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        pfstockCount: parseInt(quantity),
-                        pfstockPrice: parseInt(averagePrice),
-                        stockName: selectedStock.name,
-                        stockCode: selectedStock.code
-                    })
+                        'Authorization': `Bearer ${accessToken}`
+                    }
                 }
             );
-
-            if (response.ok) {
+    
+            if (response.status === 200) { // 200 OK
                 alert('종목이 추가되었습니다.');
                 setIsAddModalOpen(false);
                 setSelectedStock(null);

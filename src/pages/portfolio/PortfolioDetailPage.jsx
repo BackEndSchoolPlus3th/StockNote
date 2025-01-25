@@ -10,8 +10,11 @@ import {
     DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 import PortfolioSummary from "./PortfolioSummary";
+import { useAuth } from '../../contexts/AuthContext';
+import axios from 'axios';
 
 const PortfolioDetailPage = () => {
+    const {accessToken} = useAuth();
     const { portfolioId } = useParams();
     const [stocks, setStocks] = useState([]);
     const [portfolio, setPortfolio] = useState(null);
@@ -25,27 +28,31 @@ const PortfolioDetailPage = () => {
     });
 
     useEffect(() => {
-        fetchPortfolioAndStocks();
-    }, [portfolioId]);
+        if (accessToken) {
+            fetchPortfolioAndStocks();
+        }
+    }, [accessToken, portfolioId]);
 
     const fetchPortfolioAndStocks = async () => {
         try {
             // 포트폴리오 정보 가져오기
-            const portfolioResponse = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios`);
-            const portfolioResult = await portfolioResponse.json();
-            const currentPortfolio = portfolioResult.data.find(p => p.id === parseInt(portfolioId));
-            if (currentPortfolio) {
-                setPortfolio(currentPortfolio);
-            }
+            const portfolioResponse = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+            const currentPortfolio = portfolioResponse.data;
+            setPortfolio(currentPortfolio);
 
             // 주식 목록 가져오기
-            const stocksResponse = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`);
-            const stocksResult = await stocksResponse.json();
-            if (stocksResult.data) {
-                setStocks(stocksResult.data);
-            }
+            const stocksResponse = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/stocks`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+            setStocks(stocksResponse.data);
         } catch (error) {
-            console.error('데이터를 불러오는데 실패했습니다:', error);
+            console.error('Error fetching portfolio and stocks:', error);
         }
     };
 
@@ -54,17 +61,16 @@ const PortfolioDetailPage = () => {
             return;
         }
         try {
-            const response = await fetch(
+            const response = await axios.delete(
                 `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/stocks/${stockId}`,
                 {
-                    method: 'DELETE',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
                     }
                 }
             );
-
-            if (response.ok) {
+    
+            if (response.status === 204) { // 204 No Content
                 fetchPortfolioAndStocks(); // 목록 새로고침
             } else {
                 alert('종목 삭제에 실패했습니다.');
@@ -73,6 +79,7 @@ const PortfolioDetailPage = () => {
             console.error('종목 삭제 중 오류 발생:', error);
         }
     };
+    
     const handleEditClick = (stock) => {
         setEditingStock(stock);
         setEditingStockData({
@@ -81,24 +88,24 @@ const PortfolioDetailPage = () => {
         });
         setIsEditModalOpen(true);
     };
-
+    
     const handleUpdateStock = async () => {
         try {
-            const response = await fetch(
+            const response = await axios.patch(
                 `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/stocks/${editingStock.id}`,
                 {
-                    method: 'PATCH',
+                    pfstockCount: parseInt(editingStockData.pfstockCount),
+                    pfstockPrice: parseInt(editingStockData.pfstockPrice)
+                },
+                {
                     headers: {
                         'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        pfstockCount: parseInt(editingStockData.pfstockCount),
-                        pfstockPrice: parseInt(editingStockData.pfstockPrice)
-                    })
+                        'Authorization': `Bearer ${accessToken}`
+                    }
                 }
             );
-
-            if (response.ok) {
+    
+            if (response.status === 200) { // 200 OK
                 alert('종목이 수정되었습니다.');
                 setIsEditModalOpen(false);
                 setEditingStock(null);
