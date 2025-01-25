@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export function LoginForm({ className, ...props }) {
   const handleGoogleLogin = () => {
     // Redirect to the backend Google OAuth2 authorization endpoint
-    window.location.href = "http://localhost:8090/oauth2/authorization/google"
+    window.location.href = `${import.meta.env.VITE_CORE_API_BASE_URL}/oauth2/authorization/google`
   }
 
   return (
@@ -21,9 +21,9 @@ export function LoginForm({ className, ...props }) {
           <form>
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   className="w-full"
                   onClick={() => handleGoogleLogin()}
                 >

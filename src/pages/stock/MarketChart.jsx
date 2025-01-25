@@ -28,9 +28,9 @@ const MarketChart = () => {
     const fetchData = async () => {
       try {
         const [kospiRes, kosdaqRes, kospi200Res] = await Promise.all([
-          axios.get('/api/filtered/kospi'),
-          axios.get('/api/filtered/kosdaq'),
-          axios.get('/api/filtered/kospi200')
+          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/filtered/kospi`),
+          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/filtered/kosdaq`),
+          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/filtered/kospi200`)
         ]);
 
         setIndexData({
@@ -40,9 +40,9 @@ const MarketChart = () => {
         });
 
         const [kospiDetailRes, kosdaqDetailRes, kospi200DetailRes] = await Promise.all([
-          axios.get('/api/kospi'),
-          axios.get('/api/kosdaq'),
-          axios.get('/api/kospi200')
+          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/kospi`),
+          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/kosdaq`),
+          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/kospi200`)
         ]);
 
         setDetailData({
@@ -111,8 +111,8 @@ const MarketChart = () => {
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id={`color${key}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartColor} stopOpacity={0.1}/>
-                <stop offset="95%" stopColor={chartColor} stopOpacity={0}/>
+                <stop offset="5%" stopColor={chartColor} stopOpacity={0.1} />
+                <stop offset="95%" stopColor={chartColor} stopOpacity={0} />
               </linearGradient>
             </defs>
             <XAxis
@@ -164,7 +164,7 @@ const MarketChart = () => {
             </span>
           </div>
         </div>
-        
+
         {expanded[key] && (
           <div className="px-4 pb-4">
             {renderChart(key)}
