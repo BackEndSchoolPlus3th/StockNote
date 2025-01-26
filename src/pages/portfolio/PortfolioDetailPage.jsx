@@ -21,6 +21,18 @@ const PortfolioDetailPage = () => {
         pfstockCount: '',
         pfstockPrice: ''
     });
+    const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+    const [buyingStock, setBuyingStock] = useState(null);
+    const [buyStockData, setBuyStockData] = useState({
+        pfstockCount: '',
+        pfstockPrice: ''
+    });
+    const [isSellModalOpen, setIsSellModalOpen] = useState(false);
+    const [sellingStock, setSellingStock] = useState(null);
+    const [sellStockData, setSellStockData] = useState({
+        pfstockCount: '',
+        pfstockPrice: ''
+    });
 
     const tabs = ['종합자산', '코스피', '코스닥', '매매일지'];
 
@@ -116,6 +128,80 @@ const PortfolioDetailPage = () => {
         }
     };
 
+    const handleBuyStock = async () => {
+        try {
+            const response = await axios.patch(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/stocks/${buyingStock.id}/buyStock`,
+                {
+                    pfstockCount: parseInt(buyStockData.pfstockCount),
+                    pfstockPrice: parseInt(buyStockData.pfstockPrice)
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (response.status === 200) {
+                alert('매수가 완료되었습니다.');
+                setIsBuyModalOpen(false);
+                setBuyingStock(null);
+                fetchPortfolioAndStocks();
+            }
+        } catch (error) {
+            console.error('매수 중 오류 발생:', error);
+            alert('매수 처리 중 오류가 발생했습니다.');
+        }
+    };
+
+    const handleSellStock = async () => {
+        try {
+            const response = await axios.patch(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/stocks/${sellingStock.id}/sellStock`,
+                {
+                    pfstockCount: parseInt(sellStockData.pfstockCount),
+                    pfstockPrice: parseInt(sellStockData.pfstockPrice)
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (response.status === 200) {
+                alert('매도가 완료되었습니다.');
+                setIsSellModalOpen(false);
+                setSellingStock(null);
+                await fetchPortfolioAndStocks();
+            }
+        } catch (error) {
+            console.error('매도 중 오류 발생:', error);
+            alert('매도 처리 중 오류가 발생했습니다.');
+        }
+    };
+
+    const handleBuyClick = (stock) => {
+        setBuyingStock(stock);
+        setBuyStockData({
+            pfstockCount: '',
+            pfstockPrice: ''
+        });
+        setIsBuyModalOpen(true);
+    };
+
+    const handleSellClick = (stock) => {
+        setSellingStock(stock);
+        setSellStockData({
+            pfstockCount: '',
+            pfstockPrice: ''
+        });
+        setIsSellModalOpen(true);
+    };
+
     return (
         <div className="flex h-screen bg-gray-50">
             {/* 왼쪽 컨테이너 */}
@@ -193,14 +279,20 @@ const PortfolioDetailPage = () => {
 
                                 {isEditMode && (
                                     <div className="flex gap-2 border-b pb-2">
-                                        <button className="flex-1 py-1 px-3 text-sm rounded hover:bg-gray-100">매수</button>
-                                        <button className="flex-1 py-1 px-3 text-sm rounded hover:bg-gray-100">매도</button>
                                         <button
-                                            className="flex-1 py-1 px-3 text-sm rounded hover:bg-gray-100"
+                                            className="flex-1 py-1 px-3 text-sm rounded text-red-600 bg-red-100 hover:bg-red-200"
+                                            onClick={() => handleBuyClick(stock)}
+                                        >매수</button>
+                                        <button
+                                            className="flex-1 py-1 px-3 text-sm rounded text-blue-600 bg-blue-100 hover:bg-blue-200"
+                                            onClick={() => handleSellClick(stock)}
+                                        >매도</button>
+                                        <button
+                                            className="flex-1 py-1 px-3 text-sm rounded bg-gray-100 hover:bg-gray-200"
                                             onClick={() => handleEditClick(stock)}
                                         >수정</button>
                                         <button
-                                            className="flex-1 py-1 px-3 text-sm rounded text-red-600 hover:bg-red-50"
+                                            className="flex-1 py-1 px-3 text-sm rounded bg-gray-100 hover:bg-gray-200"
                                             onClick={() => handleDeleteStock(portfolioId, stock.id)}
                                         >삭제</button>
                                     </div>
@@ -299,6 +391,150 @@ const PortfolioDetailPage = () => {
                                 </Button>
                                 <Button onClick={handleUpdateStock}>
                                     수정
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 매수 모달 */}
+            {isBuyModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-[400px]">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold">매수</h2>
+                            <button
+                                className="text-gray-500 hover:text-gray-700"
+                                onClick={() => {
+                                    setIsBuyModalOpen(false);
+                                    setBuyingStock(null);
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="p-3 border rounded-lg bg-gray-50">
+                                <div className="font-medium">{buyingStock?.stockName}</div>
+                                <div className="text-sm text-gray-500">코스피</div>
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        매수 수량
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        value={buyStockData.pfstockCount}
+                                        onChange={(e) => setBuyStockData({
+                                            ...buyStockData,
+                                            pfstockCount: e.target.value
+                                        })}
+                                        placeholder="수량을 입력하세요"
+                                        className="w-full"
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        매수 가격
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        value={buyStockData.pfstockPrice}
+                                        onChange={(e) => setBuyStockData({
+                                            ...buyStockData,
+                                            pfstockPrice: e.target.value
+                                        })}
+                                        placeholder="가격을 입력하세요"
+                                        className="w-full"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setIsBuyModalOpen(false);
+                                        setBuyingStock(null);
+                                    }}
+                                >
+                                    취소
+                                </Button>
+                                <Button onClick={handleBuyStock}>
+                                    매수
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 매도 모달 */}
+            {isSellModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-[400px]">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold">매도</h2>
+                            <button
+                                className="text-gray-500 hover:text-gray-700"
+                                onClick={() => {
+                                    setIsSellModalOpen(false);
+                                    setSellingStock(null);
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="p-3 border rounded-lg bg-gray-50">
+                                <div className="font-medium">{sellingStock?.stockName}</div>
+                                <div className="text-sm text-gray-500">코스피</div>
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        매도 수량
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        value={sellStockData.pfstockCount}
+                                        onChange={(e) => setSellStockData({
+                                            ...sellStockData,
+                                            pfstockCount: e.target.value
+                                        })}
+                                        placeholder="수량을 입력하세요"
+                                        className="w-full"
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        매도 가격
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        value={sellStockData.pfstockPrice}
+                                        onChange={(e) => setSellStockData({
+                                            ...sellStockData,
+                                            pfstockPrice: e.target.value
+                                        })}
+                                        placeholder="가격을 입력하세요"
+                                        className="w-full"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setIsSellModalOpen(false);
+                                        setSellingStock(null);
+                                    }}
+                                >
+                                    취소
+                                </Button>
+                                <Button onClick={handleSellStock}>
+                                    매도
                                 </Button>
                             </div>
                         </div>
