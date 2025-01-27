@@ -16,7 +16,7 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'));
+  // const [accessToken, setAccessToken] = useState(null);
 
   // OAuth2 로그인 후 토큰 처리 함수
   const handleOAuth2Login = async () => {
@@ -28,7 +28,7 @@ const AuthProvider = ({ children }) => {
       if (token) {
         // 토큰 로컬 스토리지 저장
         localStorage.setItem('accessToken', token);
-        setAccessToken(token);
+        // setAccessToken(token);
 
         // 사용자 프로필 가져오기
         const response = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/user/profile`, {
@@ -58,7 +58,6 @@ const AuthProvider = ({ children }) => {
   // 로그아웃 함수
   const logout = () => {
     localStorage.removeItem('accessToken');
-    setAccessToken(null);
     setUser(null);
     setIsAuthenticated(false);
   };
@@ -130,8 +129,7 @@ const AuthProvider = ({ children }) => {
       user,
       isAuthenticated,
       isLoading,
-      logout,
-      accessToken
+      logout
     }}>
       {children}
     </AuthContext.Provider>
