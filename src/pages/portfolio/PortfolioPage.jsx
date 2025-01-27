@@ -124,7 +124,7 @@ const PortfolioPage = () => {
                                 />
                             </div>
                             <div className="frame-427318259">
-                                <div className="_500-00 text-green-500">
+                                <div className={`_500-00 ${totalStats.totalProfits >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
                                     총 수익 ({totalStats.totalProfits >= 0 ? '+' : ''}{totalStats.totalProfits.toLocaleString()}원)
                                 </div>
                             </div>
