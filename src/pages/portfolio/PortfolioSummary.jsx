@@ -31,6 +31,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
     const [selectedStock, setSelectedStock] = useState(null);
     const [quantity, setQuantity] = useState('');
     const [averagePrice, setAveragePrice] = useState('');
+    const [cashAmount, setCashAmount] = useState('');
 
     useEffect(() => {
         console.log('portfolioName:', portfolioName); // 디버깅용
@@ -193,6 +194,38 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
         } catch (error) {
             console.error('종목 추가 중 오류 발생:', error);
             alert('종목 추가 중 오류가 발생했습니다.');
+        }
+    };
+
+    const handleAddCash = async () => {
+        if (!cashAmount) {
+            alert('금액을 입력해주세요.');
+            return;
+        }
+
+        try {
+            const response = await axios.post(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/Cash`,
+                parseInt(cashAmount),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (response.status === 200) {
+                alert('현금이 추가되었습니다.');
+                setIsAddModalOpen(false);
+                setCashAmount('');
+                window.location.reload(); // 페이지 새로고침
+            } else {
+                alert('현금 추가에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('현금 추가 중 오류 발생:', error);
+            alert('현금 추가 중 오류가 발생했습니다.');
         }
     };
 
@@ -387,6 +420,8 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                                     </label>
                                     <Input
                                         type="number"
+                                        value={cashAmount}
+                                        onChange={(e) => setCashAmount(e.target.value)}
                                         placeholder="금액을 입력하세요"
                                         className="w-full"
                                     />
@@ -414,6 +449,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                                     setQuantity('');
                                     setAveragePrice('');
                                     setSearchQuery('');
+                                    setCashAmount('');
                                 }}
                             >
                                 취소
@@ -424,7 +460,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                                     if (selectedTab === 'stock') {
                                         handleAddStock();
                                     } else {
-                                        // 현금 추가 로직
+                                        handleAddCash();
                                     }
                                 }}
                             >

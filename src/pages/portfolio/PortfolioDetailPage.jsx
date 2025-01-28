@@ -33,6 +33,9 @@ const PortfolioDetailPage = () => {
         pfstockCount: '',
         pfstockPrice: ''
     });
+    const [cash, setCash] = useState(0);
+    const [isCashEditModalOpen, setIsCashEditModalOpen] = useState(false);
+    const [cashAmount, setCashAmount] = useState('');
 
     const tabs = ['종합자산', '코스피', '코스닥', '매매일지'];
 
@@ -56,6 +59,7 @@ const PortfolioDetailPage = () => {
             const currentPortfolio = portfolioResponse.data.data.find(p => p.id === parseInt(portfolioId));
             if (currentPortfolio) {
                 setPortfolio(currentPortfolio);
+                setCash(currentPortfolio.cash); // 현금 설정
             }
 
             if (stocksResponse.data.data) {
@@ -202,6 +206,63 @@ const PortfolioDetailPage = () => {
         setIsSellModalOpen(true);
     };
 
+    const handleEditCash = () => {
+        setCashAmount(cash);
+        setIsCashEditModalOpen(true);
+    };
+
+    const handleUpdateCash = async () => {
+        try {
+            const response = await axios.patch(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/Cash`,
+                parseInt(cashAmount),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (response.status === 200) {
+                alert('현금이 수정되었습니다.');
+                setIsCashEditModalOpen(false);
+                fetchPortfolioAndStocks();
+            } else {
+                alert('현금 수정에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('현금 수정 중 오류 발생:', error);
+            alert('현금 수정 중 오류가 발생했습니다.');
+        }
+    };
+
+    const handleDeleteCash = async () => {
+        if (!window.confirm('정말로 현금을 삭제하시겠습니까?')) return;
+
+        try {
+            const response = await axios.delete(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/Cash`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (response.status === 200) {
+                alert('현금이 삭제되었습니다.');
+                fetchPortfolioAndStocks();
+            } else {
+                alert('현금 삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('현금 삭제 중 오류 발생:', error);
+            alert('현금 삭제 중 오류가 발생했습니다.');
+        }
+    };
+
     return (
         <div className="flex h-screen bg-gray-50">
             {/* 왼쪽 컨테이너 */}
@@ -261,6 +322,37 @@ const PortfolioDetailPage = () => {
 
                     {/* 주식 목록 */}
                     <div className="space-y-4">
+                        {/* 현금 항목 추가 */}
+                        {cash > 0 && (
+                            <div className="p-4 border rounded-lg space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-gray-100 rounded-full"></div>
+                                        <div>
+                                            <div className="font-medium">현금</div>
+                                            <div className="text-sm text-gray-500">KRW</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-gray-500">금액</span>
+                                        <span className="font-medium">{cash.toLocaleString()}원</span>
+                                    </div>
+                                </div>
+                                {isEditMode && (
+                                    <div className="flex gap-2 border-b pb-2">
+                                        <button
+                                            className="flex-1 py-1 px-3 text-sm rounded bg-gray-100 hover:bg-gray-200"
+                                            onClick={handleEditCash}
+                                        >수정</button>
+                                        <button
+                                            className="flex-1 py-1 px-3 text-sm rounded bg-gray-100 hover:bg-gray-200"
+                                            onClick={handleDeleteCash}
+                                        >삭제</button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {stocks.map((stock) => (
                             <div key={stock.id} className="p-4 border rounded-lg space-y-4">
                                 <div className="flex justify-between items-center">
@@ -559,6 +651,54 @@ const PortfolioDetailPage = () => {
                                 </Button>
                                 <Button onClick={handleSellStock}>
                                     매도
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 현금 수정 모달 */}
+            {isCashEditModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-[400px]">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold">현금 수정</h2>
+                            <button
+                                className="text-gray-500 hover:text-gray-700"
+                                onClick={() => setIsCashEditModalOpen(false)}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="p-3 border rounded-lg bg-gray-50">
+                                <div className="font-medium">현금</div>
+                                <div className="text-sm text-gray-500">KRW</div>
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        금액
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        value={cashAmount}
+                                        onChange={(e) => setCashAmount(e.target.value)}
+                                        placeholder="금액을 입력하세요"
+                                        className="w-full"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsCashEditModalOpen(false)}
+                                >
+                                    취소
+                                </Button>
+                                <Button onClick={handleUpdateCash}>
+                                    수정
                                 </Button>
                             </div>
                         </div>
