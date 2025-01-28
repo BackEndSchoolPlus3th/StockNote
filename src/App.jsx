@@ -4,6 +4,7 @@ import PortfolioPage from './pages/portfolio/PortfolioPage';
 import PortfolioDetailPage from './pages/portfolio/PortfolioDetailPage';
 import MainPage from './stock/pages/MainPage';
 import Login from './pages/Login';
+import StockMainPage from './stock/pages/StockMainPage';
 
 function App() {
     return (
@@ -13,7 +14,7 @@ function App() {
                 <Route path="/portfolio" element={<PortfolioPage />} />
                 <Route path="/portfolio/:portfolioId" element={<PortfolioDetailPage />} />
                 <Route path="/community" element={<div>커뮤니티 페이지</div>} />
-                <Route path="/stocks" element={<div>종목 정보 페이지</div>} />
+                <Route path="/stocks" element={<StockMainPage/>} />
             </Route>
             <Route path="/login" element={<Login />} />
         </Routes>
