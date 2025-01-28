@@ -60,33 +60,26 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
 
     const fetchStockList = async () => {
         try {
-            const response = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/tempStock`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
+            const response = await axios.post(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/search-stocks`,
+                { keyword: searchQuery },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    }
                 }
-            });
+            );
 
-            if (response.status === 200) {
-                const data = response.data;
-                console.log('API 응답 전체:', data.data); // 전체 응답 구조 확인
-
-                if (data.data) {
-                    const filteredResults = data.data.filter(stock =>
-                        stock.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        stock.code.toLowerCase().includes(searchQuery.toLowerCase())
-                    );
-                    setSearchResults(filteredResults);
-                } else {
-                    console.log('유효하지 않은 응답 데이터:', data);
-                    setSearchResults([]);
-                }
+            if (response.status === 200 && response.data?.data) {
+                console.log('검색 결과:', response.data.data);
+                setSearchResults(response.data.data);
             } else {
-                console.error('주식 목록 조회에 실패했습니다.');
+                console.log('검색 결과 없음');
                 setSearchResults([]);
             }
         } catch (error) {
-            console.error('API 호출 중 오류 발생:', error);
+            console.error('주식 검색 중 오류 발생:', error);
             setSearchResults([]);
         }
     };
@@ -96,6 +89,15 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
         if (e.target.value.length >= 1) {
             fetchStockList();
         } else {
+            setSearchResults([]);
+        }
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && searchQuery.length >= 1) {
+            e.preventDefault();
+            fetchStockList();
+        } else if (e.key === 'Enter' && searchQuery.length === 0) {
             setSearchResults([]);
         }
     };
@@ -298,6 +300,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                                         placeholder="종목명 또는 종목코드를 입력하세요"
                                         value={searchQuery}
                                         onChange={handleSearch}
+                                        onKeyPress={handleKeyPress}
                                         className="pl-10"
                                     />
                                 </div>
@@ -307,7 +310,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                                     <div className="p-3 border rounded-lg bg-gray-50">
                                         <div className="font-medium">{selectedStock.name}</div>
                                         <div className="text-sm text-gray-500">
-                                            {selectedStock.code} | {selectedStock.category}
+                                            {selectedStock.code} | {selectedStock.market}
                                         </div>
                                     </div>
                                 )}
@@ -324,7 +327,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                                                 >
                                                     <div className="font-medium">{stock.name}</div>
                                                     <div className="text-sm text-gray-500">
-                                                        {stock.code} | {stock.category}
+                                                        {stock.code} | {stock.market}
                                                     </div>
                                                 </div>
                                             ))
@@ -372,35 +375,6 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                                         </p>
                                     )}
                                 </div>
-                                {/* <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        수량
-                                    </label>
-                                    <Input
-                                        type="number"
-                                        value={quantity}
-                                        onChange={(e) => setQuantity(e.target.value)}
-                                        placeholder="수량을 입력하세요"
-                                        className="w-full"
-                                        disabled={!selectedStock}
-                                    />
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        평균단가
-                                    </label>
-                                    <Input
-                                        type="number"
-                                        value={quantity}
-                                        onChange={(e) => setQuantity(e.target.value)}
-                                        placeholder="평균단가를 입력하세요"
-                                        className="w-full"
-                                        disabled={!selectedStock}
-                                    />
-                                    {!selectedStock && (
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            종목을 선택해주세요
-                                        </p>
-                                    )}
-                                </div> */}
                             </div>
                         )}
 

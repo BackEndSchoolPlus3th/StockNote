@@ -268,12 +268,28 @@ const PortfolioDetailPage = () => {
                                         <div className="w-10 h-10 bg-gray-100 rounded-full"></div>
                                         <div>
                                             <div className="font-medium">{stock.stockName}</div>
-                                            <div className="text-sm text-gray-500">코스피</div>
+                                            <div className="text-sm text-gray-500">{stock.market}</div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-gray-500">수량</span>
-                                        <span className="font-medium">{stock.pfstockCount.toLocaleString()}</span>
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center justify-between w-full">
+                                                <span className="text-gray-500 w-20">수량</span>
+                                                <span className="font-medium text-right w-24">{stock.pfstockCount.toLocaleString()}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between w-full">
+                                                <span className="text-gray-500 w-20">수익률</span>
+                                                <span className={`${(stock.currentPrice - stock.pfstockPrice) > 0
+                                                    ? 'text-red-600'
+                                                    : (stock.currentPrice - stock.pfstockPrice) < 0
+                                                        ? 'text-blue-600'
+                                                        : 'text-gray-600'
+                                                    } text-right w-24`}>
+                                                    {(stock.currentPrice - stock.pfstockPrice) > 0 ? '+' : ''}
+                                                    {Number(((stock.currentPrice - stock.pfstockPrice) / stock.currentPrice * 100).toFixed(1)).toLocaleString()}%
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -302,11 +318,19 @@ const PortfolioDetailPage = () => {
                                     <div className="space-y-2">
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-500">자산가치</span>
-                                            <span>{stock.pfstockTotalPrice.toLocaleString()}원</span>
+                                            <span>{(stock.currentPrice * stock.pfstockCount).toLocaleString()}원</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-500">수익</span>
-                                            <span className="text-green-600">+300,000원</span>
+                                            <span className={`${(stock.currentPrice - stock.pfstockPrice) > 0
+                                                ? 'text-red-600'
+                                                : (stock.currentPrice - stock.pfstockPrice) < 0
+                                                    ? 'text-blue-600'
+                                                    : 'text-gray-600'
+                                                }`}>
+                                                {(stock.currentPrice - stock.pfstockPrice) > 0 ? '+' : ''}
+                                                {((stock.currentPrice - stock.pfstockPrice) * stock.pfstockCount).toLocaleString()}원
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="space-y-2">
@@ -316,7 +340,7 @@ const PortfolioDetailPage = () => {
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-500">현재가</span>
-                                            <span>45,000원</span>
+                                            <span>{stock.currentPrice.toLocaleString()}원</span>
                                         </div>
                                     </div>
                                 </div>
