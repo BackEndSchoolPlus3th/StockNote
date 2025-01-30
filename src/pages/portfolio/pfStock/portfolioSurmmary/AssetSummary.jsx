@@ -1,7 +1,7 @@
 import React from 'react';
 
-export const AssetSummary = ({ totalAsset, totalProfit }) => {
-    const profitPercent = totalAsset > 0 ? (totalProfit / totalAsset * 100).toFixed(1) : 0;
+export const AssetSummary = ({ totalAsset, totalProfit, totalStock }) => {
+    const profitPercent = totalAsset > 0 ? (totalProfit / totalStock * 100).toFixed(1) : 0;
 
     return (
         <div className="space-y-2 bg-gray-50 p-4 rounded-lg">

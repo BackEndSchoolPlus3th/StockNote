@@ -372,7 +372,7 @@ const PortfolioDetailPage = () => {
                                                         : 'text-gray-600'
                                                     } text-right w-24`}>
                                                     {(stock.currentPrice - stock.pfstockPrice) > 0 ? '+' : ''}
-                                                    {Number(((stock.currentPrice - stock.pfstockPrice) / stock.currentPrice * 100).toFixed(1)).toLocaleString()}%
+                                                    {Number(((stock.currentPrice - stock.pfstockPrice) / stock.pfstockPrice * 100).toFixed(1)).toLocaleString()}%
                                                 </span>
                                             </div>
                                         </div>

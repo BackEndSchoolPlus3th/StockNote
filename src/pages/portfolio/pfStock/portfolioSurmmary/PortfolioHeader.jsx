@@ -3,7 +3,7 @@ import React from 'react';
 import { Plus, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import portfolioIcon from '../../assets/portfolio-icon.svg';
+import portfolioIcon from "@/assets/portfolio-icon.svg";
 
 export const PortfolioHeader = ({
     portfolioName,

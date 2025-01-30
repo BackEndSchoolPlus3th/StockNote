@@ -53,17 +53,31 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
     };
 
     useEffect(() => {
-        const total = stocks.reduce((sum, stock) => sum + stock.pfstockTotalPrice, 0);
-        setTotalAsset(total);
+        if (portfolioData) {
+            const total = portfolioData.totalAsset;
+            const cash = portfolioData.cash || 0;
 
-        const ratios = stocks.map((stock, index) => ({
-            name: stock.stockName,
-            ratio: (stock.pfstockTotalPrice / total * 100).toFixed(1),
-            amount: stock.pfstockTotalPrice,
-            fill: BLUE_COLORS[index % BLUE_COLORS.length]
-        }));
-        setStockRatios(ratios);
-    }, [stocks]);
+            const stockRatios = stocks.map((stock, index) => ({
+                name: stock.stockName,
+                ratio: ((stock.pfstockTotalPrice / total) * 100).toFixed(1),
+                amount: stock.pfstockTotalPrice,
+                fill: BLUE_COLORS[index % BLUE_COLORS.length]
+            }));
+
+            // 현금이 0보다 클 때만 현금 항목을 추가
+            const ratiosWithCash = cash > 0
+                ? [...stockRatios, {
+                    name: "현금",
+                    ratio: ((cash / total) * 100).toFixed(1),
+                    amount: cash,
+                    fill: "#A3AED0"
+                }]
+                : stockRatios;
+
+            setStockRatios(stockRatios);
+            setSectorRatios(ratiosWithCash);
+        }
+    }, [stocks, portfolioData]);
 
     const handleAddStock = async ({ selectedStock, quantity, averagePrice }) => {
         if (!selectedStock || !quantity || !averagePrice) {
@@ -211,6 +225,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                 <AssetSummary
                     totalAsset={portfolioData.totalAsset}
                     totalProfit={portfolioData.totalProfit}
+                    totalStock={portfolioData.totalStock}
                 />
             )}
 
