@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../../../contexts/AuthContext';
 import { AddAssetModal } from './AddAssetModal';
-import { EditPortfolioModal } from './EditPortfolioModal';
+import { EditPortfolioModal } from '../../portfolio/EditPortfolioModal';
 import { PortfolioHeader } from './PortfolioHeader';
 import { AssetSummary } from './AssetSummary';
 import { AssetDistribution } from './AssetDistribution';
@@ -20,13 +20,37 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
     const { accessToken } = useAuth();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [portfolioData, setPortfolioData] = useState(null);
     const [totalAsset, setTotalAsset] = useState(0);
     const [stockRatios, setStockRatios] = useState([]);
-    const [sectorRatios, setSectorRatios] = useState([
-        { name: "제약/의료", ratio: "44.9", color: "bg-[#4318FF]" },
-        { name: "전자", ratio: "35.1", color: "bg-[#6AD2FF]" },
-        { name: "현금", ratio: "20.0", color: "bg-[#A3AED0]" }
+    const [sectorRatios, setSectorRatios] = useState([  // sectorRatios state 추가
+        { name: "IT/소프트웨어", ratio: "35.0", color: "bg-[#4318FF]" },
+        { name: "금융", ratio: "25.0", color: "bg-[#6AD2FF]" },
+        { name: "제조/화학", ratio: "20.0", color: "bg-[#2B3674]" },
+        { name: "에너지", ratio: "15.0", color: "bg-[#A3AED0]" },
+        { name: "기타", ratio: "5.0", color: "bg-[#B0C4FF]" }
     ]);
+
+    useEffect(() => {
+        fetchPortfolioData();
+    }, [portfolioId]);
+
+    const fetchPortfolioData = async () => {
+        try {
+            const response = await axios.get(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`,
+                {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                }
+            );
+            if (response.data && response.data.data) {
+                setPortfolioData(response.data.data);
+                setTotalAsset(response.data.data.totalAsset || 0); // totalAsset 설정
+            }
+        } catch (error) {
+            console.error('포트폴리오 데이터 조회 실패:', error);
+        }
+    };
 
     useEffect(() => {
         const total = stocks.reduce((sum, stock) => sum + stock.pfstockTotalPrice, 0);
@@ -85,7 +109,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
 
         try {
             const response = await axios.post(
-                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/Cash`,
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/cash`,
                 parseInt(cashAmount),
                 {
                     headers: {
@@ -182,7 +206,13 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
                 />
             )}
 
-            <AssetSummary totalAsset={totalAsset} />
+            {/* portfolioData가 있을 때만 AssetSummary를 렌더링 */}
+            {portfolioData && (
+                <AssetSummary
+                    totalAsset={portfolioData.totalAsset}
+                    totalProfit={portfolioData.totalProfit}
+                />
+            )}
 
             <div className="flex gap-4 border-b">
                 {/* ... 탭 버튼들 */}

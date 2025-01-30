@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
 import { ChevronDown } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../components/ui/dropdown-menu";
-import PortfolioSummary from "./PortfolioSummary";
-import { useAuth } from '../../contexts/AuthContext';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu";
+import PortfolioSummary from "./portfolioSurmmary/PortfolioSummary";
+import { useAuth } from '../../../contexts/AuthContext';
 import axios from 'axios';
 
 const PortfolioDetailPage = () => {
@@ -47,26 +47,20 @@ const PortfolioDetailPage = () => {
 
     const fetchPortfolioAndStocks = async () => {
         try {
-            const [portfolioResponse, stocksResponse] = await Promise.all([
-                axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios`, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                }),
-                axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                })
-            ]);
+            const portfolioResponse = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
 
-            const currentPortfolio = portfolioResponse.data.data.find(p => p.id === parseInt(portfolioId));
-            if (currentPortfolio) {
-                setPortfolio(currentPortfolio);
-                setCash(currentPortfolio.cash); // 현금 설정
+            if (portfolioResponse.data && portfolioResponse.data.data) {
+                setPortfolio(portfolioResponse.data.data);
+                // pfStocks 배열을 설정
+                setStocks(portfolioResponse.data.data.pfStocks || []);
+                setCash(portfolioResponse.data.data.cash || 0);
             }
-
-            if (stocksResponse.data.data) {
-                setStocks(stocksResponse.data.data);
-            }
+            console.log("포트폴리오 응답:", portfolioResponse.data);
         } catch (error) {
             console.error('데이터를 불러오는데 실패했습니다:', error);
+            setStocks([]); // 에러 시 빈 배열로 초기화
         }
     };
 
@@ -214,7 +208,7 @@ const PortfolioDetailPage = () => {
     const handleUpdateCash = async () => {
         try {
             const response = await axios.patch(
-                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/Cash`,
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/cash`,
                 parseInt(cashAmount),
                 {
                     headers: {
@@ -242,7 +236,7 @@ const PortfolioDetailPage = () => {
 
         try {
             const response = await axios.delete(
-                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/Cash`,
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/cash`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -353,7 +347,7 @@ const PortfolioDetailPage = () => {
                             </div>
                         )}
 
-                        {stocks.map((stock) => (
+                        {Array.isArray(stocks) && stocks.map((stock) => (
                             <div key={stock.id} className="p-4 border rounded-lg space-y-4">
                                 <div className="flex justify-between items-center">
                                     <div className="flex items-center gap-3">
