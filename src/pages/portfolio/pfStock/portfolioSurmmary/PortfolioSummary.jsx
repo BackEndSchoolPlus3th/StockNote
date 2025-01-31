@@ -22,45 +22,18 @@ const PortfolioSummary = ({
     portfolioName,
     portfolioDescription,
     shouldRefresh,
-    onAddClick,  // 추가
-    onPortfolioUpdate  // 추가: 콜백 prop
+    onAddClick,
+    onPortfolioUpdate,
+    portfolioData  // 새로 추가: 부모로부터 데이터 전달받음
 }) => {
     const { accessToken } = useAuth();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [portfolioData, setPortfolioData] = useState(null);
-    const [totalAsset, setTotalAsset] = useState(0);
     const [stockRatios, setStockRatios] = useState([]);
-    const [sectorRatios, setSectorRatios] = useState([  // sectorRatios state 추가
-        { name: "IT/소프트웨어", ratio: "35.0", color: "bg-[#4318FF]" },
-        { name: "금융", ratio: "25.0", color: "bg-[#6AD2FF]" },
-        { name: "제조/화학", ratio: "20.0", color: "bg-[#2B3674]" },
-        { name: "에너지", ratio: "15.0", color: "bg-[#A3AED0]" },
-        { name: "기타", ratio: "5.0", color: "bg-[#B0C4FF]" }
-    ]);
+    const [sectorRatios, setSectorRatios] = useState([]);
 
     useEffect(() => {
-        fetchPortfolioData();
-    }, [portfolioId, stocks, shouldRefresh]); // shouldRefresh 의존성 추가
-
-    const fetchPortfolioData = async () => {
-        try {
-            const response = await axios.get(
-                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}`,
-                {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                }
-            );
-            if (response.data && response.data.data) {
-                setPortfolioData(response.data.data);
-                setTotalAsset(response.data.data.totalAsset || 0); // totalAsset 설정
-            }
-        } catch (error) {
-            console.error('포트폴리오 데이터 조회 실패:', error);
-        }
-    };
-
-    useEffect(() => {
+        // portfolioData가 변경될 때마다 자산 비율 계산
         if (portfolioData) {
             const total = portfolioData.totalAsset;
             const cash = portfolioData.cash || 0;

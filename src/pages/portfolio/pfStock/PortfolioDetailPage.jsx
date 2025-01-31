@@ -163,6 +163,7 @@ const PortfolioDetailPage = () => {
                             shouldRefresh={shouldRefresh} // 갱신 트리거 prop 추가
                             onAddClick={handleAddClick}  // 추가
                             onPortfolioUpdate={fetchPortfolioAndStocks}  // 추가: 포트폴리오 업데이트 콜백
+                            portfolioData={portfolio}  // portfolioData 전달
                         />
                     )}
                 </div>
