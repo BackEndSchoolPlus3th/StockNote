@@ -59,7 +59,7 @@ export const EditStockModal = ({
                 <div className="space-y-4">
                     <div className="p-3 border rounded-lg bg-gray-50">
                         <div className="font-medium">{stock?.stockName}</div>
-                        <div className="text-sm text-gray-500">코스피</div>
+                        <div className="text-sm text-gray-500">{stock?.market}</div>
                     </div>
                     <div className="flex gap-4">
                         <div className="flex-1">

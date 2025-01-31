@@ -6,6 +6,7 @@ import { PortfolioHeader } from './PortfolioHeader';
 import { AssetSummary } from './AssetSummary';
 import { AssetDistribution } from './AssetDistribution';
 import axios from 'axios';
+import { SectorBarChart } from './SectorBarChart';
 
 // 파란색 계열의 색상 팔레트
 const BLUE_COLORS = [
@@ -183,19 +184,6 @@ const PortfolioSummary = ({
                 onDeleteClick={handleDeletePortfolio}
             />
 
-            {/* isAddModalOpen이 true일 때만 모달을 렌더링하도록 수정
-            {isAddModalOpen && (
-                <AddAssetModal
-                    isOpen={true}  // setIsAddModalOpen 대신 true 값을 전달
-                    onClose={() => setIsAddModalOpen(false)}
-                    onAddStock={handleAddStock}
-                    onAddCash={handleAddCash}
-                    accessToken={accessToken}
-                    onAssetAdded={onDataRefresh}
-                    portfolioId={portfolioId}  // portfolioId도 필요
-                />
-            )} */}
-
             {isEditModalOpen && (
                 <EditPortfolioModal
                     isOpen={isEditModalOpen}
@@ -221,6 +209,10 @@ const PortfolioSummary = ({
             <AssetDistribution
                 stockRatios={stockRatios}
                 sectorRatios={sectorRatios}
+            />
+            <SectorBarChart
+                stocks={stocks}
+                totalAsset={portfolioData?.totalAsset || 0}
             />
         </div>
     );
