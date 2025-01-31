@@ -16,7 +16,15 @@ const BLUE_COLORS = [
     '#B0C4FF', // 연한 파란색
 ];
 
-const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescription }) => {
+const PortfolioSummary = ({
+    stocks,
+    portfolioId,
+    portfolioName,
+    portfolioDescription,
+    shouldRefresh,
+    onAddClick,  // 추가
+    onPortfolioUpdate  // 추가: 콜백 prop
+}) => {
     const { accessToken } = useAuth();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -33,7 +41,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
 
     useEffect(() => {
         fetchPortfolioData();
-    }, [portfolioId]);
+    }, [portfolioId, stocks, shouldRefresh]); // shouldRefresh 의존성 추가
 
     const fetchPortfolioData = async () => {
         try {
@@ -59,7 +67,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
 
             const stockRatios = stocks.map((stock, index) => ({
                 name: stock.stockName,
-                ratio: ((stock.pfstockTotalPrice / total) * 100).toFixed(1),
+                ratio: ((stock.pfstockCount * stock.currentPrice / total) * 100).toFixed(1),
                 amount: stock.pfstockTotalPrice,
                 fill: BLUE_COLORS[index % BLUE_COLORS.length]
             }));
@@ -105,7 +113,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
             if (response.status === 200) { // 200 OK
                 alert('종목이 추가되었습니다.');
                 setIsAddModalOpen(false);
-                window.location.reload(); // 페이지 새로고침
+                await fetchPortfolioData(); // window.location.reload() 대신 fetchPortfolioData 호출
             } else {
                 alert('종목 추가에 실패했습니다.');
             }
@@ -136,7 +144,7 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
             if (response.status === 200) {
                 alert('현금이 추가되었습니다.');
                 setIsAddModalOpen(false);
-                window.location.reload(); // 페이지 새로고침
+                await fetchPortfolioData(); // window.location.reload() 대신 fetchPortfolioData 호출
             } else {
                 alert('현금 추가에 실패했습니다.');
             }
@@ -160,7 +168,8 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
 
             if (response.status === 200) { // 200 OK
                 setIsEditModalOpen(false);
-                window.location.reload(); // 수정 후 페이지 새로고침
+                await fetchPortfolioData(); // window.location.reload() 대신 fetchPortfolioData 호출
+                onPortfolioUpdate();  // 추가: 상위 컴포넌트에 변경 알림
             } else {
                 console.error('포트폴리오 수정에 실패했습니다.');
             }
@@ -196,20 +205,23 @@ const PortfolioSummary = ({ stocks, portfolioId, portfolioName, portfolioDescrip
         <div className="flex flex-col gap-6">
             <PortfolioHeader
                 portfolioName={portfolioName}
-                onAddClick={() => setIsAddModalOpen(true)}
+                onAddClick={onAddClick}  // 전달
                 onEditClick={() => setIsEditModalOpen(true)}
                 onDeleteClick={handleDeletePortfolio}
             />
 
+            {/* isAddModalOpen이 true일 때만 모달을 렌더링하도록 수정
             {isAddModalOpen && (
                 <AddAssetModal
-                    isOpen={isAddModalOpen}
+                    isOpen={true}  // setIsAddModalOpen 대신 true 값을 전달
                     onClose={() => setIsAddModalOpen(false)}
                     onAddStock={handleAddStock}
                     onAddCash={handleAddCash}
                     accessToken={accessToken}
+                    onAssetAdded={onDataRefresh}
+                    portfolioId={portfolioId}  // portfolioId도 필요
                 />
-            )}
+            )} */}
 
             {isEditModalOpen && (
                 <EditPortfolioModal

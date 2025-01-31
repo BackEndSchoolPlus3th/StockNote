@@ -7,6 +7,7 @@ export const AssetDistribution = ({ stockRatios, sectorRatios }) => {
     return (
         <div className="flex gap-8">
             <div className="w-[300px] h-[300px] relative">
+                <h3 className="font-medium mb-4">자산 비중</h3>
                 <PieChart width={300} height={300}>
                     <Pie
                         data={sectorRatios}

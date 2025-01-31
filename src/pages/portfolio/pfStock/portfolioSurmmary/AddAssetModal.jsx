@@ -129,11 +129,11 @@ const CashForm = ({ cashAmount, onCashAmountChange }) => {
 };
 
 export const AddAssetModal = ({
-    isOpen,
+    isOpen,  // isOpen prop 사용
     onClose,
-    onAddStock,
-    onAddCash,
-    accessToken
+    portfolioId,
+    accessToken,
+    onAssetAdded
 }) => {
     const [selectedTab, setSelectedTab] = useState('stock');
     const [searchQuery, setSearchQuery] = useState('');
@@ -187,7 +187,67 @@ export const AddAssetModal = ({
         onClose();
     };
 
-    return (
+    const handleStockSubmit = async () => {
+        try {
+            const response = await axios.post(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/stocks/AddStock`,
+                {
+                    stockCode: selectedStock.code,        // stockCode로 변경
+                    stockName: selectedStock.name,
+                    pfstockCount: parseInt(quantity),
+                    pfstockPrice: parseInt(averagePrice)
+                    // market 필드 제거 (서버에서 필요없는 경우)
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (response.status === 200) {
+                alert('종목이 추가되었습니다.');
+                onAssetAdded();  // 종목 추가 성공 시 부모 컴포넌트에 알림
+                handleClose();
+            }
+        } catch (error) {
+            console.error('종목 추가 중 오류 발생:', error);
+            console.log('요청 데이터:', {
+                stockCode: selectedStock.code,
+                stockName: selectedStock.name,
+                pfstockCount: quantity,
+                pfstockPrice: averagePrice
+            });
+            alert('종목 추가 중 오류가 발생했습니다.');
+        }
+    };
+
+    const handleCashSubmit = async () => {
+        try {
+            const response = await axios.post(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/cash`,
+                parseInt(cashAmount),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (response.status === 200) {
+                alert('현금이 추가되었습니다.');
+                onAssetAdded();  // 현금 추가 성공 시 부모 컴포넌트에 알림
+                handleClose();
+            }
+        } catch (error) {
+            console.error('현금 추가 중 오류 발생:', error);
+            alert('현금 추가 중 오류가 발생했습니다.');
+        }
+    };
+
+    return isOpen ? (  // isOpen이 true일 때만 모달 렌더링
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-[500px]">
                 <div className="flex justify-between items-center mb-6">
@@ -243,9 +303,9 @@ export const AddAssetModal = ({
                         disabled={selectedTab === 'stock' && (!selectedStock || !quantity || !averagePrice)}
                         onClick={() => {
                             if (selectedTab === 'stock') {
-                                onAddStock({ selectedStock, quantity, averagePrice });
+                                handleStockSubmit();
                             } else {
-                                onAddCash(cashAmount);
+                                handleCashSubmit();
                             }
                         }}
                     >
@@ -254,5 +314,5 @@ export const AddAssetModal = ({
                 </div>
             </div>
         </div>
-    );
+    ) : null;  // isOpen이 false면 null 반환
 };
