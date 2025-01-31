@@ -34,30 +34,19 @@ const PortfolioSummary = ({
     const [sectorRatios, setSectorRatios] = useState([]);
 
     useEffect(() => {
-        // portfolioData가 변경될 때마다 자산 비율 계산
+        // portfolioData가 변경될 때마다 주식 비율만 계산
         if (portfolioData) {
             const total = portfolioData.totalAsset;
-            const cash = portfolioData.cash || 0;
 
+            // 주식 데이터만 계산
             const stockRatios = stocks.map((stock, index) => ({
                 name: stock.stockName,
+                amount: stock.pfstockCount * stock.currentPrice,
                 ratio: ((stock.pfstockCount * stock.currentPrice / total) * 100).toFixed(1),
-                amount: stock.pfstockTotalPrice,
                 fill: BLUE_COLORS[index % BLUE_COLORS.length]
             }));
 
-            // 현금이 0보다 클 때만 현금 항목을 추가
-            const ratiosWithCash = cash > 0
-                ? [...stockRatios, {
-                    name: "현금",
-                    ratio: ((cash / total) * 100).toFixed(1),
-                    amount: cash,
-                    fill: "#A3AED0"
-                }]
-                : stockRatios;
-
             setStockRatios(stockRatios);
-            setSectorRatios(ratiosWithCash);
         }
     }, [stocks, portfolioData]);
 
@@ -206,10 +195,13 @@ const PortfolioSummary = ({
                 {/* ... 탭 버튼들 */}
             </div>
 
-            <AssetDistribution
-                stockRatios={stockRatios}
-                sectorRatios={sectorRatios}
-            />
+            {portfolioData && (
+                <AssetDistribution
+                    stockRatios={stockRatios}
+                    portfolioData={portfolioData}
+                />
+            )}
+
             <SectorBarChart
                 stocks={stocks}
                 totalAsset={portfolioData?.totalAsset || 0}
