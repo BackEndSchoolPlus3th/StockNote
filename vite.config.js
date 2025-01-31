@@ -12,9 +12,17 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8090',  // 스프링 부트 서버 주소
+        target: 'http://localhost:8090',
+        changeOrigin: true
+      },
+      '/ws': {
+        target: 'http://localhost:8090',
+        ws: true,
         changeOrigin: true
       }
     }
-  }
+  },
+  define: {
+    global: 'window',
+  },
 })

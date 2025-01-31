@@ -1,61 +1,90 @@
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Star } from "lucide-react";
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import { Client } from "@stomp/stompjs";
+import SockJS from 'sockjs-client';
 
-const stockData = [
-  {
-    name: "삼성전자",
-    price: "1,000,000원",
-    change: "+9.79%",
-    isPositive: true,
-  },
-  {
-    name: "한화생명",
-    price: "1,000,000원",
-    change: "-9.79%",
-    isPositive: false,
-  },
-  {
-    name: "어쩌구저쩌구",
-    price: "1,000,000원",
-    change: "+9.79%",
-    isPositive: true,
-  },
-];
+const StockList = ({ stocks }) => {  // ✅ props로 stocks 받음
+  const stompClient = useRef(null);
+  const subscriptions = useRef({}); // 중복 구독 방지
 
-const StockList = () => {
+  // WebSocket 연결 및 구독 설정
+  const connectWebSocket = () => {
+    if (stompClient.current?.connected) {
+      console.log('🛑 WebSocket already connected. Skipping re-connection.');
+      return;
+    }
+
+    const token = localStorage.getItem('accessToken');
+    if (!token || stocks.length === 0) {
+      console.log('Cannot connect:', { hasToken: !!token, stocksLength: stocks.length });
+      return;
+    }
+
+    console.log('Connecting to WebSocket with stocks:', stocks);
+
+    const socket = new SockJS('http://localhost:8090/ws', null, {
+      transports: ['websocket'],
+      timeout: 30000
+    });
+
+    const client = new Client({
+      webSocketFactory: () => socket,
+      connectHeaders: {
+        'Authorization': `Bearer ${token}`
+      },
+      debug: (str) => {
+        console.log('STOMP:', str);
+      },
+      onConnect: () => {
+        console.log('✅ WebSocket Connected, subscribing to stocks');
+
+        stocks.forEach(stock => {
+          if (!subscriptions.current[stock.code]) { // 중복 구독 방지
+            subscriptions.current[stock.code] = client.subscribe(
+              `/topic/stocks/${stock.code}`,
+              message => handleStockMessage(stock.code, message)
+            );
+            console.log(`📩 Subscribed to stock ${stock.code}`);
+          }
+        });
+      },
+      onStompError: (frame) => {
+        console.error('❌ STOMP error:', frame);
+      },
+      onWebSocketClose: () => {
+        console.log('⚠️ WebSocket connection closed');
+      },
+      onWebSocketError: (event) => {
+        console.error('❌ WebSocket error:', event);
+      },
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000
+    });
+
+    try {
+      client.activate();
+      stompClient.current = client;
+    } catch (error) {
+      console.error('❌ Failed to activate STOMP client:', error);
+    }
+  };
+
+  // ✅ stocks가 변경될 때만 WebSocket 연결
+  useEffect(() => {
+    if (stocks.length > 0) {
+      connectWebSocket();
+    }
+  }, [stocks]);
+
   return (
     <div className="flex justify-center w-full">
-    <div className="w-[805px] bg-[#b9dafc1a] rounded-[20px] border p-8 space-y-6">
-      <div className="space-y-4">
-        <h1 className="font-h1 text-[32px] font-bold">관심종목</h1>
-
-        <div className="flex justify-between items-center">
-          <span className="font-h4 text-black">총 {stockData.length}개</span>
-
-          <Select defaultValue="alphabetical">
-            <SelectTrigger className="w-[127px]">
-              <SelectValue placeholder="정렬 방식" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="alphabetical">가나다순</SelectItem>
-              <SelectItem value="price">가격순</SelectItem>
-              <SelectItem value="change">변동순</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
+      <div className="w-[805px] bg-[#b9dafc1a] rounded-[20px] border p-8 space-y-6">
         <div className="space-y-2.5">
-          {stockData.map((stock, index) => (
-            <Card
-              key={index}
+          {stocks.map((stock) => (
+            <Card 
+              key={stock.code} 
               className="border border-variable-collection-gray shadow-[4px_4px_4px_#00000040]"
             >
               <CardContent className="p-5">
@@ -64,16 +93,12 @@ const StockList = () => {
                     <h3 className="font-h3 text-black p-2.5">{stock.name}</h3>
                     <div className="flex items-center gap-2">
                       <span className="font-h3 text-black p-2.5">
-                        {stock.price}
+                        {stock.price ? `${stock.price.toLocaleString()}원` : "-"}
                       </span>
-                      <span
-                        className={`font-h4 p-2.5 ${
-                          stock.isPositive
-                            ? "text-variable-collection-error"
-                            : "text-variable-collection-primaryvariant"
-                        }`}
-                      >
-                        ({stock.change})
+                      <span className={`font-h4 p-2.5 ${
+                        stock.isPositive ? "text-red-500" : "text-blue-500"
+                      }`}>
+                        ({stock.change || "-"})
                       </span>
                     </div>
                   </div>
@@ -86,7 +111,6 @@ const StockList = () => {
           ))}
         </div>
       </div>
-    </div>
     </div>
   );
 };
