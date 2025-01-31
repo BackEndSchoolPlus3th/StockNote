@@ -1,7 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip } from 'recharts';
 
-export const AssetDistribution = ({ stockRatios, portfolioData }) => {
+export const AssetDistribution = ({ stockRatios, portfolioData, activeTab }) => {
     const COLORS = ['#4318FF', '#6AD2FF', '#2B3674', '#A3AED0', '#B0C4FF'];
 
     // portfolioData가 없으면 로딩 상태나 빈 상태 표시
@@ -40,10 +40,22 @@ export const AssetDistribution = ({ stockRatios, portfolioData }) => {
         }
     ].sort((a, b) => parseFloat(b.ratio) - parseFloat(a.ratio));  // 비율 기준 내림차순 정렬
 
+    // 차트 제목 동적 설정
+    const getChartTitle = () => {
+        switch (activeTab) {
+            case '코스피':
+                return '코스피 종목 비중';
+            case '코스닥':
+                return '코스닥 종목 비중';
+            default:
+                return '전체 자산 비중';
+        }
+    };
+
     return (
         <div className="flex gap-8">
             <div className="w-[300px] h-[300px] relative">
-                <h3 className="font-medium mb-4">자산 비중</h3>
+                <h3 className="font-medium mb-4">{getChartTitle()}</h3>
                 <PieChart width={300} height={300}>
                     <Pie
                         data={chartData}
