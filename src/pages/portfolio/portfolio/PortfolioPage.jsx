@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import unlockIcon from '../../assets/flat-color-icons-unlock.svg';
-import plusIcon from '../../assets/ic-baseline-plus.svg';
-import arrowIcon from '../../assets/weui-arrow-filled.svg';
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { useAuth } from '../../contexts/AuthContext'; //useAuth 훅 가져오기
+import unlockIcon from '@/assets/flat-color-icons-unlock.svg';
+import plusIcon from '@/assets/ic-baseline-plus.svg';
+import arrowIcon from '@/assets/weui-arrow-filled.svg';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAuth } from '@/contexts/AuthContext'; //useAuth 훅 가져오기
 import axios from 'axios';
 
 const PortfolioPage = () => {
