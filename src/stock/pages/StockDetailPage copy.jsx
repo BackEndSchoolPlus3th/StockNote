@@ -3,13 +3,12 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import StockChart from '@/components/StockChart';
-
+import StockChart from "@/components/StockChart";
 
 const StockDetailPage = () => {
-  const [stockData, setStockData] = useState({ output: {} });
-  const [voteStats, setVoteStats] = useState(null);
-  const [chartData, setChartData] = useState(null);
+  const [stockData, setStockData] = useState(null);
+  // const [voteStats, setVoteStats] = useState(null);
+  // const [chartData, setChartData] = useState(null);
   const { stockCode } = useParams();
 
   useEffect(() => {
@@ -27,28 +26,26 @@ const StockDetailPage = () => {
         };
   
         const priceRes = await axios.get(`/api/v1/stockApis/price?stockCode=${stockCode}`, { headers });
-        console.log("📊 주식 데이터 응답:", priceRes.data);
-        console.log("📊 주식 현재가:", priceRes.data?.output?.stck_prpr); // 🛠️ 값 확인
+        console.log('📊 주식 데이터:', priceRes.data);
         setStockData(priceRes.data);
         
-        const voteRes = await axios.get(`/api/v1/stocks/${stockCode}/vote-statistics`, { headers });
-        setVoteStats(voteRes.data);
+        // const voteRes = await axios.get(`/api/v1/stock/${stockCode}/vote-statistics`, { headers });
+        // setVoteStats(voteRes.data);
   
-        const now = new Date();
-        const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
+        // const now = new Date();
+        // const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
         
-        const chartRes = await axios.get('/api/v1/stockApis/chart', {
-          headers,
-          params: {
-            stockCode,
-            periodType: 'DAILY',
-            startDate: monthAgo.toISOString().split('T')[0],
-            endDate: new Date().toISOString().split('T')[0]
-          }
-        });
-        console.log("📅 차트 요청 날짜:", monthAgo.toISOString().split('T')[0], " ~ ", new Date().toISOString().split('T')[0]);
-        console.log("📈 차트 데이터:", chartRes.data);
-        setChartData(chartRes.data);
+        // const chartRes = await axios.get('/api/v1/stockApis/chart', {
+        //   headers,
+        //   params: {
+        //     stockCode,
+        //     periodType: 'DAILY',
+        //     startDate: monthAgo.toISOString().split('T')[0],
+        //     endDate: new Date().toISOString().split('T')[0]
+        //   }
+        // });
+  
+        // setChartData(chartRes.data);
       } catch (error) {
         console.error('❌ 주식 데이터를 가져오는 중 오류 발생:', error);
       }
@@ -56,27 +53,27 @@ const StockDetailPage = () => {
   
     fetchStockData();
   }, [stockCode]);
-  const handleVote = async (voteType) => {
-    try {
-      await axios.post(`/api/v1/stocks/${stockCode}/vote`, {
-        buy: voteType === 'BUY',
-        sell: voteType === 'SELL'
-      });
+  // const handleVote = async (voteType) => {
+  //   try {
+  //     await axios.post(`/api/v1/stocks/${stockCode}/vote`, {
+  //       buy: voteType === 'BUY',
+  //       sell: voteType === 'SELL'
+  //     });
       
-      // Refresh vote statistics
-      const voteRes = await axios.get(`/api/v1/stocks/${stockCode}/vote-statistics`);
-      setVoteStats(voteRes.data);
-    } catch (error) {
-      console.error('Error voting:', error);
-    }
-  };
+  //     // Refresh vote statistics
+  //     const voteRes = await axios.get(`/api/v1/stocks/${stockCode}/vote-statistics`);
+  //     setVoteStats(voteRes.data);
+  //   } catch (error) {
+  //     console.error('Error voting:', error);
+  //   }
+  // };
 
-  if (!stockData || !voteStats || !chartData) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
-  }
+  // if (!stockData || !voteStats || !chartData) {
+  //   return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  // }
 
-  const buyPercentage = voteStats.buyPercentage || 0;
-  const sellPercentage = voteStats.sellPercentage || 0;
+  // const buyPercentage = voteStats.buyPercentage || 0;
+  // const sellPercentage = voteStats.sellPercentage || 0;
 
   return (
     <div className="container mx-auto p-4">
@@ -97,15 +94,10 @@ const StockDetailPage = () => {
               관심종목
             </Button>
           </div>
-            <Card className="mb-6">
-                <StockChart chartData={chartData} />
-
-            </Card>
-
         </CardContent>
       </Card>
 
-      <Card className="mb-6">
+      {/* <Card className="mb-6">
         <CardContent className="p-6">
           <h2 className="text-xl font-semibold mb-4">커뮤니티 투표</h2>
           <div className="flex gap-4 mb-4">
@@ -137,7 +129,7 @@ const StockDetailPage = () => {
             <span className="text-red-500">{sellPercentage.toFixed(1)}%</span>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 };
