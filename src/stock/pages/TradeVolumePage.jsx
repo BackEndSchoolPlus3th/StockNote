@@ -13,7 +13,7 @@ const TradeVolumePage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get('/api/volume');
+                const response = await axios.get('/api/v1/stockApis');
                 if (response.data && response.data.output) {
                     setVolumeData(response.data.output);
                 }

@@ -3,10 +3,12 @@ import { Star } from "lucide-react";
 import React, { useEffect, useRef } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from 'sockjs-client';
+import { useNavigate } from "react-router-dom";
 
 const StockList = ({ stocks }) => {  // ✅ props로 stocks 받음
   const stompClient = useRef(null);
   const subscriptions = useRef({}); // 중복 구독 방지
+  const navigate = useNavigate();
 
   // WebSocket 연결 및 구독 설정
   const connectWebSocket = () => {
@@ -43,7 +45,8 @@ const StockList = ({ stocks }) => {  // ✅ props로 stocks 받음
           if (!subscriptions.current[stock.code]) { // 중복 구독 방지
             subscriptions.current[stock.code] = client.subscribe(
               `/topic/stocks/${stock.code}`,
-              message => handleStockMessage(stock.code, message)
+              message => handleStockMessage(stock.code, message),
+              { 'Authorization': `Bearer ${token}` }
             );
             console.log(`📩 Subscribed to stock ${stock.code}`);
           }
@@ -86,6 +89,7 @@ const StockList = ({ stocks }) => {  // ✅ props로 stocks 받음
             <Card 
               key={stock.code} 
               className="border border-variable-collection-gray shadow-[4px_4px_4px_#00000040]"
+              onClick={() => navigate(`/stocks/${stock.code}`)}
             >
               <CardContent className="p-5">
                 <div className="flex justify-between items-start">

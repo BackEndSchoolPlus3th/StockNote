@@ -28,9 +28,9 @@ const MarketChart = () => {
     const fetchData = async () => {
       try {
         const [kospiRes, kosdaqRes, kospi200Res] = await Promise.all([
-          axios.get('/api/filtered/kospi'),
-          axios.get('/api/filtered/kosdaq'),
-          axios.get('/api/filtered/kospi200')
+          axios.get('/api/v1/stockApis/filtered/kospi'),
+          axios.get('/api/v1/stockApis/filtered/kosdaq'),
+          axios.get('/api/v1/stockApis/filtered/kospi200')
         ]);
 
         setIndexData({
@@ -40,9 +40,9 @@ const MarketChart = () => {
         });
 
         const [kospiDetailRes, kosdaqDetailRes, kospi200DetailRes] = await Promise.all([
-          axios.get('/api/kospi'),
-          axios.get('/api/kosdaq'),
-          axios.get('/api/kospi200')
+          axios.get('/api/v1/stockApis/kospi'),
+          axios.get('/api/v1/stockApis/kosdaq'),
+          axios.get('/api/v1/stockApis/kospi200')
         ]);
 
         setDetailData({

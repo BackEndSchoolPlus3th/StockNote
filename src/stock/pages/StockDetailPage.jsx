@@ -13,16 +13,28 @@ const StockDetailPage = () => {
   useEffect(() => {
     const fetchStockData = async () => {
       try {
-        const priceRes = await axios.get(`/api/v1/stocks/price?stockCode=${stockCode}`);
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          console.log('로그인이 필요합니다.');
+          return;
+        }
+  
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        };
+  
+        const priceRes = await axios.get(`/api/v1/stocks/price?stockCode=${stockCode}`, { headers });
         setStockData(priceRes.data);
         
-        const voteRes = await axios.get(`/api/v1/stocks/${stockCode}/vote-statistics`);
+        const voteRes = await axios.get(`/api/v1/stocks/${stockCode}/vote-statistics`, { headers });
         setVoteStats(voteRes.data);
-
+  
         const now = new Date();
         const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
         
         const chartRes = await axios.get('/api/v1/stocks/chart', {
+          headers,
           params: {
             stockCode,
             periodType: 'DAILY',
@@ -30,15 +42,15 @@ const StockDetailPage = () => {
             endDate: new Date().toISOString().split('T')[0]
           }
         });
+  
         setChartData(chartRes.data);
       } catch (error) {
-        console.error('Error fetching stock data:', error);
+        console.error('❌ 주식 데이터를 가져오는 중 오류 발생:', error);
       }
     };
-
+  
     fetchStockData();
   }, [stockCode]);
-
   const handleVote = async (voteType) => {
     try {
       await axios.post(`/api/v1/stocks/${stockCode}/vote`, {
