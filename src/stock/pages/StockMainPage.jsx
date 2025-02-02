@@ -48,21 +48,30 @@ const StockMainPage = () => {
   return (
     <div className="w-full p-4">
       <div className="flex flex-col items-center">
-        {location.pathname === "/stocks" && (  // ✅ 상세 페이지에서는 숨김
+        {location.pathname === "/stocks" && (
           <>
+            <div className="w-[805px] flex justify-start mb-2">
+              <h2 className="text-2xl font-bold">나의 관심 종목</h2>
+            </div>
             <div className="w-[805px] flex justify-end mb-2">
+            <div className="space-x-1">
               <Button 
                 variant="outline"
                 onClick={() => setIsSearchOpen(true)}
               >
                 추가
               </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setIsSearchOpen(true)}
+              >
+                삭제
+              </Button>
+              </div>
             </div>
 
             <div className="flex justify-center w-full">
-              <div className="w-[805px] bg-[#b9dafc1a] rounded-[20px] border p-8 space-y-6">
                 <StockList stocks={stocks} />
-              </div>
             </div>
           </>
         )}

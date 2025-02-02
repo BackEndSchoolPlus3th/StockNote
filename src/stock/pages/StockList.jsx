@@ -82,9 +82,10 @@ const StockList = ({ stocks }) => {  // ✅ props로 stocks 받음
   }, [stocks]);
 
   return (
+
     <div className="flex justify-center w-full">
-      <div className="w-[805px] bg-[#b9dafc1a] rounded-[20px] border p-8 space-y-6">
-        <div className="space-y-2.5">
+      <div className="w-[805px] bg-[#b9dafc1a] rounded-[20px] border p-4 space-y-6">
+        <div className="space-y-1.5">
           {stocks.map((stock) => (
             <Card 
               key={stock.code} 
@@ -94,7 +95,10 @@ const StockList = ({ stocks }) => {  // ✅ props로 stocks 받음
               <CardContent className="p-5">
                 <div className="flex justify-between items-start">
                   <div className="space-y-2">
-                    <h3 className="font-h3 text-black p-2.5">{stock.name}</h3>
+                    <div className="flex items-center space-x-0.5">
+                      <h3 className="font-h3 text-xl text-black p-2.5">{stock.name}</h3>
+                      <h3 className="font-h4 text-gray-400 p-2.5">{stock.code}</h3>
+                    </div>
                     <div className="flex items-center gap-2">
                       <span className="font-h3 text-black p-2.5">
                         {stock.price ? `${stock.price.toLocaleString()}원` : "-"}
