@@ -1,14 +1,17 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from 'sockjs-client';
 import { useNavigate } from "react-router-dom";
 
-const StockList = ({ stocks }) => {  // ✅ props로 stocks 받음
+const StockList = ({ stocks }) => {
   const stompClient = useRef(null);
   const subscriptions = useRef({}); // 중복 구독 방지
   const navigate = useNavigate();
+  
+  // State to track favorited stocks
+  const [favoritedStocks, setFavoritedStocks] = useState({});
 
   // WebSocket 연결 및 구독 설정
   const connectWebSocket = () => {
@@ -81,8 +84,15 @@ const StockList = ({ stocks }) => {  // ✅ props로 stocks 받음
     }
   }, [stocks]);
 
-  return (
+  // Toggle favorite status for a stock
+  const toggleFavorite = (stockCode) => {
+    setFavoritedStocks(prev => ({
+      ...prev,
+      [stockCode]: !prev[stockCode]
+    }));
+  };
 
+  return (
     <div className="flex justify-center w-full">
       <div className="w-[805px] bg-[#b9dafc1a] rounded-[20px] border p-4 space-y-6">
         <div className="space-y-1.5">
@@ -104,14 +114,30 @@ const StockList = ({ stocks }) => {  // ✅ props로 stocks 받음
                         {stock.price ? `${stock.price.toLocaleString()}원` : "-"}
                       </span>
                       <span className={`font-h4 p-2.5 ${
-                        stock.isPositive ? "text-red-500" : "text-blue-500"
+                        stock.change?.startsWith('+') 
+                          ? "text-red-500" 
+                          : stock.change?.startsWith('-') 
+                            ? "text-blue-500" 
+                            : "text-gray-500"
                       }`}>
                         ({stock.change || "-"})
                       </span>
                     </div>
                   </div>
-                  <button className="p-2">
-                    <Star className="w-[22px] h-[21px] text-gray-400" />
+                  <button 
+                    className="p-2"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent card navigation
+                      toggleFavorite(stock.code);
+                    }}
+                  >
+                    <Star 
+                      className={`w-[22px] h-[21px] ${
+                        favoritedStocks[stock.code] 
+                          ? "text-yellow-500" 
+                          : "text-gray-400"
+                      }`} 
+                    />
                   </button>
                 </div>
               </CardContent>
