@@ -10,6 +10,7 @@ const StockDetailPage = () => {
   const [stockData, setStockData] = useState({ output: {} });
   const [voteStats, setVoteStats] = useState(null);
   const [chartData, setChartData] = useState(null);
+  const [periodType, setPeriodType] = useState('TIME');
   const { stockCode } = useParams();
 
   useEffect(() => {
@@ -35,27 +36,66 @@ const StockDetailPage = () => {
         setVoteStats(voteRes.data);
   
         const now = new Date();
-        const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
-        
+        let startDate;
+        const endDate = new Date().toISOString().split('T')[0];
+        if (periodType === 'TIME') {
+          startDate = now.toISOString().split('T')[0]; // 당일 데이터
+        } else if (periodType === 'DAILY') {
+          startDate = new Date(now.setMonth(now.getMonth() - 1)).toISOString().split('T')[0]; // 1달
+        } else if (periodType === 'WEEKLY') {
+          startDate = new Date(now.setMonth(now.getMonth() - 2)).toISOString().split('T')[0];
+        } else if (periodType === 'MONTHLY') {
+          startDate = new Date(now.setFullYear(now.getFullYear() - 1)).toISOString().split('T')[0]; // 1년
+        } else if (periodType === 'YEARLY') {
+          startDate = new Date(now.setFullYear(now.getFullYear() - 5)).toISOString().split('T')[0]; // 5년
+        }
+
         const chartRes = await axios.get('/api/v1/stockApis/chart', {
           headers,
-          params: {
-            stockCode,
-            periodType: 'DAILY',
-            startDate: monthAgo.toISOString().split('T')[0],
-            endDate: new Date().toISOString().split('T')[0]
-          }
+          params: { stockCode, periodType, startDate, endDate }
         });
-        console.log("📅 차트 요청 날짜:", monthAgo.toISOString().split('T')[0], " ~ ", new Date().toISOString().split('T')[0]);
-        console.log("📈 차트 데이터:", chartRes.data);
-        setChartData(chartRes.data);
+        
+        let candles = chartRes.data?.candles || [];
+    
+        // 📌 주말 또는 공휴일인 경우, 마지막으로 거래된 날짜 데이터 가져오기
+        if (candles.length === 0) {
+          console.warn("⚠️ 거래 데이터가 없음. 마지막 거래일 데이터 사용");
+    
+          const backupChartRes = await axios.get('/api/v1/stockApis/chart', {
+            headers,
+            params: { stockCode, periodType, startDate: getLastTradingDay(), endDate }
+          });
+    
+          candles = backupChartRes.data?.candles || [];
+        }
+    
+        console.log("📈 API 응답 차트 데이터:", chartRes.data);
+        setChartData({ ...chartRes.data, candles });
+    
       } catch (error) {
         console.error('❌ 주식 데이터를 가져오는 중 오류 발생:', error);
       }
     };
-  
+    
+    // 📌 가장 최근 거래일 가져오기 함수 (주말/공휴일 체크)
+    const getLastTradingDay = () => {
+      let date = new Date();
+      const day = date.getDay(); // 0: 일요일, 1: 월요일 ... 6: 토요일
+    
+      if (day === 0) {
+        // 일요일이면 금요일(이틀 전)
+        date.setDate(date.getDate() - 2);
+      } else if (day === 6) {
+        // 토요일이면 금요일(하루 전)
+        date.setDate(date.getDate() - 1);
+      }
+      
+      return date.toISOString().split('T')[0]; // YYYY-MM-DD 형식 반환
+    };
+
     fetchStockData();
-  }, [stockCode]);
+  }, [stockCode, periodType]);
+
   const handleVote = async (voteType) => {
     try {
       await axios.post(`/api/v1/stocks/${stockCode}/vote`, {
@@ -85,6 +125,7 @@ const StockDetailPage = () => {
           <div className="flex justify-between items-center mb-4">
             <div>
               <h1 className="text-2xl font-bold">{chartData.stockName}</h1>
+             
               <p className="text-3xl font-bold text-blue-600">
                 {stockData.output?.stck_prpr || 0}원
               </p>
@@ -97,11 +138,16 @@ const StockDetailPage = () => {
               관심종목
             </Button>
           </div>
-            <Card className="mb-6">
-                <StockChart chartData={chartData} />
-
-            </Card>
-
+          <div className="flex gap-2 mb-4">
+            <Button onClick={() => setPeriodType('TIME')} className={`text-white ${periodType === 'TIME' ? 'bg-gray-800' : 'bg-gray-500'}`}>시간</Button>
+            <Button onClick={() => setPeriodType('DAILY')} className={`text-white ${periodType === 'DAILY' ? 'bg-blue-600' : 'bg-blue-500'}`}>일별</Button>
+            <Button onClick={() => setPeriodType('WEEKLY')} className={`text-white ${periodType === 'WEEKLY' ? 'bg-green-600' : 'bg-green-500'}`}>주별</Button>
+            <Button onClick={() => setPeriodType('MONTHLY')} className={`text-white ${periodType === 'MONTHLY' ? 'bg-orange-600' : 'bg-orange-500'}`}>월별</Button>
+            <Button onClick={() => setPeriodType('YEARLY')} className={`text-white ${periodType === 'YEARLY' ? 'bg-red-600' : 'bg-red-500'}`}>연도별</Button>
+          </div>
+          <Card className="mb-6">
+            <StockChart chartData={chartData} periodType={periodType} />  {/* ✅ periodType 추가 */}
+          </Card>
         </CardContent>
       </Card>
 
