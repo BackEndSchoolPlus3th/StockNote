@@ -11,15 +11,22 @@ import {
   NavigationMenuItem,
   NavigationMenuLink
 } from "@/components/ui/navigation-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem
+} from "@/components/ui/dropdown-menu";
 
 const navigationItems = [
   { label: "포트폴리오", href: "/portfolio" },
-  { label: "커뮤니티", href: "/community" },
+  { label: "커뮤니티", href: "/community/articles" },
   { label: "종목 정보", href: "/stocks" },
 ];
 
 export default function Frame() {
   const { isAuthenticated, user, logout } = useAuth();
+  console.log(user);
   const navigate = useNavigate();
   const handleLogout = () => {
     logout();
@@ -67,17 +74,28 @@ export default function Frame() {
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
             <>
-              <div className="flex items-center gap-2">
-                <Avatar className="w-[35px] h-[35px]">
-                  <AvatarImage src={user?.profile || "https://github.com/shadcn.png"} alt="User avatar" />
-                  <AvatarFallback>{user?.name?.[0] || 'UN'}</AvatarFallback>
-                </Avatar>
-                <span className="font-h4 text-[16px]">{user?.name || "사용자"}</span>
-              </div>
+                 <div className="flex items-center gap-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger className="focus:outline-none">
+          <div className="flex items-center gap-2 hover:opacity-80">
+            <Avatar className="w-[35px] h-[35px]">
+              <AvatarImage src={user?.profile || "https://github.com/shadcn.png"} alt="User avatar" />
+              <AvatarFallback>{user?.name?.[0] || 'UN'}</AvatarFallback>
+            </Avatar>
+            <span className="font-h4 text-[16px]">{user?.name || "사용자"}</span>
+          </div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => navigate('/mypage')}>
+            마이페이지
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
 
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="w-[25px] h-[27px]" />
-              </Button>
+    <Button variant="ghost" size="icon" className="relative">
+      <Bell className="w-[25px] h-[27px]" />
+    </Button>
 
               <Button
                 onClick={handleLogout}

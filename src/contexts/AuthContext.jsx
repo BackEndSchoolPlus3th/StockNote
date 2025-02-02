@@ -54,6 +54,14 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = (updatedUserInfo) => {
+    setUser(prevUser => ({
+      ...prevUser,
+      ...updatedUserInfo
+    }));
+  };
+
+
 
   // 로그아웃 함수
   const logout = () => {
@@ -129,6 +137,7 @@ const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{
       user,
       isAuthenticated,
+      updateUser,
       isLoading,
       logout,
       accessToken
