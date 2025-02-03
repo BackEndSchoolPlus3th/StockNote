@@ -16,24 +16,24 @@ const StockDetailPage = () => {
   useEffect(() => {
     const fetchStockData = async () => {
       try {
-        console.log('데이터 로딩 시작...');
-        const token = localStorage.getItem('accessToken');
-        if (!token) return;
-
-        const headers = {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        };
-
-        // 기본 데이터와 투표 통계 로드
-        const [priceRes, voteRes] = await Promise.all([
-          axios.get(`/api/v1/stockApis/price?stockCode=${stockCode}`, { headers }),
-          axios.get(`/api/v1/stocks/${stockCode}/vote-statistics`, { headers })
-        ]);
-
+        const priceRes = await axios.get(`/api/v1/stocks/price?stockCode=${stockCode}`);
         setStockData(priceRes.data);
+
+        const voteRes = await axios.get(`/api/v1/stocks/${stockCode}/vote-statistics`);
         setVoteStats(voteRes.data);
 
+        const now = new Date();
+        const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
+
+        const chartRes = await axios.get('/api/v1/stocks/chart', {
+          params: {
+            stockCode,
+            periodType: 'DAILY',
+            startDate: monthAgo.toISOString().split('T')[0],
+            endDate: new Date().toISOString().split('T')[0]
+          }
+        });
+        setChartData(chartRes.data);
         // 차트 데이터 로드
         if (periodType === 'TIME') {
           const timeRes = await axios.get(`/api/v1/stockApis/time-prices?stockCode=${stockCode}`, { headers });
@@ -42,24 +42,24 @@ const StockDetailPage = () => {
           const now = new Date();
           const endDate = now.toISOString().split('T')[0];
           let startDate = new Date(now);
-          
+
           switch(periodType) {
             case 'DAILY': startDate.setMonth(now.getMonth() - 1); break;
             case 'WEEKLY': startDate.setMonth(now.getMonth() - 2); break;
             case 'MONTHLY': startDate.setFullYear(now.getFullYear() - 1); break;
             case 'YEARLY': startDate.setFullYear(now.getFullYear() - 5); break;
           }
-          
+
           const chartRes = await axios.get('/api/v1/stockApis/chart', {
             headers,
-            params: { 
-              stockCode, 
-              periodType, 
-              startDate: startDate.toISOString().split('T')[0], 
-              endDate 
+            params: {
+              stockCode,
+              periodType,
+              startDate: startDate.toISOString().split('T')[0],
+              endDate
             }
           });
-          
+
           setChartData(chartRes.data);
         }
       } catch (error) {
@@ -73,10 +73,10 @@ const StockDetailPage = () => {
   const handleVote = async (voteType) => {
     try {
       const token = localStorage.getItem('accessToken');
-      
+
       const response = await axios.post(
         `/api/v1/stocks/${stockCode}/vote`,
-        { 
+        {
           buy: voteType === 'BUY',
           sell: voteType === 'SELL'
         },
@@ -87,11 +87,11 @@ const StockDetailPage = () => {
           }
         }
       );
-  
+
       if (response.status === 200) {
         setVoteMessage('투표가 성공적으로 완료되었습니다.');
         setTimeout(() => setVoteMessage(''), 2000);
-        
+
         // 투표 통계 갱신
         const voteRes = await axios.get(
           `/api/v1/stocks/${stockCode}/vote-statistics`,
@@ -133,7 +133,7 @@ const StockDetailPage = () => {
           {voteMessage}
         </div>
       )}
-      
+
       <Card className="mb-6">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
@@ -151,40 +151,40 @@ const StockDetailPage = () => {
               관심종목
             </Button>
           </div>
-          
+
           <div className="flex gap-2 mb-4">
-            <Button 
-              onClick={() => setPeriodType('TIME')} 
+            <Button
+              onClick={() => setPeriodType('TIME')}
               className={`text-white ${periodType === 'TIME' ? 'bg-gray-800' : 'bg-gray-500'}`}
             >
               시간
             </Button>
-            <Button 
-              onClick={() => setPeriodType('DAILY')} 
+            <Button
+              onClick={() => setPeriodType('DAILY')}
               className={`text-white ${periodType === 'DAILY' ? 'bg-blue-600' : 'bg-blue-500'}`}
             >
               일별
             </Button>
-            <Button 
-              onClick={() => setPeriodType('WEEKLY')} 
+            <Button
+              onClick={() => setPeriodType('WEEKLY')}
               className={`text-white ${periodType === 'WEEKLY' ? 'bg-green-600' : 'bg-green-500'}`}
             >
               주별
             </Button>
-            <Button 
-              onClick={() => setPeriodType('MONTHLY')} 
+            <Button
+              onClick={() => setPeriodType('MONTHLY')}
               className={`text-white ${periodType === 'MONTHLY' ? 'bg-orange-600' : 'bg-orange-500'}`}
             >
               월별
             </Button>
-            <Button 
-              onClick={() => setPeriodType('YEARLY')} 
+            <Button
+              onClick={() => setPeriodType('YEARLY')}
               className={`text-white ${periodType === 'YEARLY' ? 'bg-red-600' : 'bg-red-500'}`}
             >
               연도별
             </Button>
           </div>
-  
+
           <Card className="mb-6">
             <StockChart chartData={chartData} periodType={periodType} />
           </Card>
@@ -208,7 +208,7 @@ const StockDetailPage = () => {
               매도
             </Button>
           </div>
-  
+
           <div className="relative h-8 bg-gray-200 rounded-full overflow-hidden">
             <div
               className="absolute h-full bg-blue-500"
