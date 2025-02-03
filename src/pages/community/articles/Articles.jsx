@@ -1,10 +1,11 @@
 import { Avatar, AvatarFallback,AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Heart, Plus } from "lucide-react";
+import { Calendar, Heart, Plus, MessageCircle } from "lucide-react";
 import CommunitySidebar from "@/components/sidebar/CommunitySidebar";
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const CommunityList = () => {
@@ -16,6 +17,7 @@ const CommunityList = () => {
     "뉴스분석": "NEWS"
   };
 
+  const {  user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || "전체");
   const [posts, setPosts] = useState([]);
@@ -93,35 +95,72 @@ const CommunityList = () => {
                   onClick={() => handlePostClick(post.id)}
                 >
                   <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage 
-                        src={post.profile || '/default-avatar.png'} 
-                        alt="User profile" 
-                      />
-                      <AvatarFallback>
-                        {post.userId?.toString().charAt(0).toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                      <div>
-                        <h3 className="font-medium">{post.username}</h3>
-                        <div className="flex items-center gap-2 text-gray-500 text-sm">
-                          <Calendar className="h-4 w-4" />
-                          <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage 
+                            src={post.profile || '/default-avatar.png'} 
+                            alt="User profile" 
+                          />
+                          <AvatarFallback>
+                            {post.username?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="font-medium">{post.title}</h3>
+                          <div className="flex items-center gap-4 text-gray-500 text-sm">
+                            <span className="font-medium text-gray-700">{post.username}</span>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <MessageCircle className="h-4 w-4" />
+                              <span>{post.comments.length || 0}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
+                      {post.authorId === user?.id && (
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent card click event
+                              navigate(`/community/article/${post.id}/editor`, {
+                                state: {
+                                  title: post.title,
+                                  body: post.body,
+                                  hashtags: post.hashtags,
+                                  isEditing: true
+                                }
+                              });
+                            }}
+                          >
+                            수정
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Add delete logic here
+                            }}
+                          >
+                            삭제
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
                     <p className="text-gray-600">{post.body}</p>
-                    {post.hashtags && post.hashtags.length > 0 && (
-                      <div className="flex gap-2 mt-4">
-                        {post.hashtags.map((tag, index) => (
-                          <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    <div className="flex gap-2 mt-4">
+                      {post.hashtags?.map((tag, index) => (
+                        <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
               ))}

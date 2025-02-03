@@ -8,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Community = () => {
   const { id } = useParams();
@@ -19,6 +20,7 @@ const Community = () => {
       const response = await axios.get(
         `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post/${id}`
       );
+      console.log(response.data.data);
       setArticle(response.data.data);
     } catch (error) {
       console.error('게시글 조회 실패:', error);
@@ -29,22 +31,12 @@ const Community = () => {
     fetchArticle();
   }, [id]);
 
+  const {  user } = useAuth();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editContent, setEditContent] = useState('');
 
-  const fetchComments = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post/${id}/comments`
-      );
-      console.log(response.data.data.content);
-      setComments(response.data.data.content);
-    } catch (error) {
-      console.error('댓글 조회 실패:', error);
-    }
-  };
 
   const handleAddComment = async () => {
     try {
@@ -60,7 +52,7 @@ const Community = () => {
         }
       );
       setNewComment('');
-      fetchComments();
+      fetchArticle();
     } catch (error) {
       console.error('댓글 작성 실패:', error);
     }
@@ -68,7 +60,8 @@ const Community = () => {
 
   const handleEditComment = async (commentId) => {
     try {
-      await axios.put(
+      console.log(editContent);
+      await axios.patch(
         `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post/${id}/comments/${commentId}`,
         { body: editContent },
         {
@@ -78,7 +71,7 @@ const Community = () => {
         }
       );
       setEditingCommentId(null);
-      fetchComments();
+      fetchArticle();
     } catch (error) {
       console.error('댓글 수정 실패:', error);
     }
@@ -94,14 +87,13 @@ const Community = () => {
           }
         }
       );
-      fetchComments();
+      fetchArticle();
     } catch (error) {
       console.error('댓글 삭제 실패:', error);
     }
   };
 
   useEffect(() => {
-    fetchComments();
   }, [id]);
 
   if (!article) return <div>Loading...</div>;
@@ -152,24 +144,27 @@ const Community = () => {
             <Card className="mt-4">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="font-semibold">댓글 {comments.length}개</span>
+                  <span className="font-semibold">댓글 {article.comments.length}개</span>
                 </div>
                 
                 {/* Comment List */}
                 <div className="space-y-4 mb-4">
-                  {comments.map((comment) => (
+                  {article.comments.map((comment) => (
                     <div key={comment.id} className="border-b pb-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
-                            <AvatarFallback>{comment.userId?.toString().charAt(0)}</AvatarFallback>
+                          <AvatarImage 
+                                src={comment.profile || '/default-avatar.png'} 
+                              />
                           </Avatar>
-                          <span className="font-medium">{comment.userId}</span>
+                          <span className="font-medium">{comment.author}</span>
                           <span className="text-gray-500 text-sm">
                             {new Date(comment.createdAt).toLocaleDateString()}
                           </span>
                         </div>
                         {/* Comment Actions */}
+                        {comment.authorId === user.id && editingCommentId !== comment.id &&(
                         <div className="flex gap-2">
                           <Button 
                             variant="ghost" 
@@ -189,6 +184,7 @@ const Community = () => {
                             삭제
                           </Button>
                         </div>
+                          )}
                       </div>
                       
                       {editingCommentId === comment.id ? (
@@ -200,6 +196,7 @@ const Community = () => {
                           <Button onClick={() => handleEditComment(comment.id)}>
                             저장
                           </Button>
+                          <Button variant="ghost" onClick={() => setEditingCommentId(null)}>취소</Button>
                         </div>
                       ) : (
                         <p className="mt-2">{comment.body}</p>
