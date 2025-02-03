@@ -6,6 +6,7 @@ import MainPage from './pages/stock/MainPage';
 import Login from './pages/Login';
 import Community from './pages/community/articles/Article';
 import CreateArticle from './pages/community/articles/CreateArticle';
+import UpdateArticle from './pages/community/articles/UpdateArticle';
 import CommunityList from './pages/community/articles/Articles';
 import MyPage from './pages/mypage/MyPage';
 
@@ -19,6 +20,7 @@ function App() {
                 <Route path="/community/article/:id" element={<Community />} />
                 <Route path="/community/articles" element={<CommunityList />} />
                 <Route path="/community/editor" element={<CreateArticle />} />
+                <Route path="/community/article/:id/editor" element={<UpdateArticle />} />
                 <Route path="/mypage" element={<MyPage/>} />
                 <Route path="/stocks" element={<div>종목 정보 페이지</div>} />
             </Route>

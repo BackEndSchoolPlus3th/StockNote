@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+
 const UpdateArticle = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     body: '',
@@ -23,11 +26,34 @@ const UpdateArticle = () => {
     { value: "QNA", label: "질문" }
   ];
 
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post/${id}`
+        );
+        const post = response.data.data;
+        console.log(post.category);
+        setFormData({
+          title: post.title,
+          body: post.body,
+          hashtags: post.hashtags.join(', '),
+          category: post.category
+        });
+        setLoading(false);
+      } catch (error) {
+        console.error('게시글 조회 실패:', error);
+      }
+    };
+    fetchPost();
+  }, [id]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log(formData);
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post`,
+      const response = await axios.put(
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post/${id}`,
         {
           ...formData,
           hashtags: formData.hashtags.split(',').map(tag => tag.trim())
@@ -40,10 +66,16 @@ const UpdateArticle = () => {
         }
       );
       console.log(response);
-      navigate(`/community/article/${response.data.data}`);
+      navigate(`/community/article/${id}`);
     } catch (error) {
       console.error('게시글 작성 실패:', error);
     }
+  };
+
+  const isFormValid = () => {
+    return formData.title.trim() !== '' && 
+           formData.body.trim() !== '' && 
+           formData.category !== '';
   };
 
   return (
@@ -51,7 +83,7 @@ const UpdateArticle = () => {
       <div className="container mx-auto px-4">
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
-            <h1 className="text-2xl font-bold">새 게시글 작성</h1>
+            <h1 className="text-2xl font-bold">게시글 수정</h1>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -97,7 +129,11 @@ const UpdateArticle = () => {
                 <Button variant="outline" onClick={() => navigate(-1)}>
                   취소
                 </Button>
-                <Button type="submit">
+                <Button 
+                  type="submit" 
+                  disabled={!isFormValid()}
+                  className={!isFormValid() ? "opacity-50 cursor-not-allowed" : ""}
+                >
                   작성하기
                 </Button>
               </div>
