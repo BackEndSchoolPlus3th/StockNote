@@ -6,12 +6,12 @@ import kakaoLoginImage from '../assets/kakao_login_medium_wide.png';
 export function LoginForm({ className, ...props }) {
   const handleGoogleLogin = () => {
     // Redirect to the backend Google OAuth2 authorization endpoint
-    window.location.href = "http://localhost:8090/oauth2/authorization/google"
+    window.location.href = `${import.meta.env.VITE_CORE_API_BASE_URL}/oauth2/authorization/google`
   }
 
   const handleKakaoLogin = () => {
     // Redirect to the backend Google OAuth2 authorization endpoint
-    window.location.href = "http://localhost:8090/oauth2/authorization/kakao"
+    window.location.href = `${import.meta.env.VITE_CORE_API_BASE_URL}oauth2/authorization/kakao`
   }
 
   return (
