@@ -1,14 +1,56 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
+import axios from 'axios';
 
 export const EditCashModal = ({
     isOpen,
     onClose,
-    cashAmount,
-    setCashAmount,
-    onUpdate
+    currentCash,
+    onUpdate,
+    portfolioId,  // portfolioId 추가
+    accessToken   // accessToken 추가
 }) => {
+    const [cashAmount, setCashAmount] = useState(currentCash || 0);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            setCashAmount(currentCash || 0);
+        }
+    }, [isOpen, currentCash]);
+
+    const handleSubmit = async () => {
+        setIsLoading(true);
+        console.log("Sending request with token:", accessToken); // 디버깅용
+        try {
+            const response = await axios.patch(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/${portfolioId}/cash`,
+                Number(cashAmount),  // 객체가 아닌 숫자 값으로 직접 전송
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`  // 헤더에 토큰 추가
+                    }
+                }
+            );
+
+            if (response.status === 200) {
+                onUpdate(Number(cashAmount));
+                onClose();
+            }
+        } catch (error) {
+            console.error('현금 수정 중 오류 발생:', error);
+            if (error.response?.status === 401) {
+                alert('인증이 만료되었습니다. 다시 로그인해주세요.');
+            } else {
+                alert('현금 수정에 실패했습니다.');
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -41,11 +83,11 @@ export const EditCashModal = ({
                         />
                     </div>
                     <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={onClose}>
+                        <Button variant="outline" onClick={onClose} disabled={isLoading}>
                             취소
                         </Button>
-                        <Button onClick={onUpdate}>
-                            수정
+                        <Button onClick={handleSubmit} disabled={isLoading}>
+                            {isLoading ? "처리중..." : "수정"}
                         </Button>
                     </div>
                 </div>

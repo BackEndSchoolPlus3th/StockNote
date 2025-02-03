@@ -12,6 +12,7 @@ import { BuyStockModal } from './modals/BuyStockModal';
 import { SellStockModal } from './modals/SellStockModal';
 import { EditCashModal } from './modals/EditCashModal';
 import { AddAssetModal } from './portfolioSurmmary/AddAssetModal';  // AddAssetModal import 추가
+import TransactionHistory from './transactionHistory/TransactionHistory';
 
 const PortfolioDetailPage = () => {
     const { accessToken } = useAuth();
@@ -130,13 +131,18 @@ const PortfolioDetailPage = () => {
     };
 
     const handleModalAction = async (type, data) => {
-        try {
-            // API 호출 및 데이터 갱신 로직
+        if (type === '현금수정') {
+            // 현금 수정 후 포트폴리오 데이터 새로고침
             await fetchPortfolioAndStocks();
             handleDataRefresh();
-        } catch (error) {
-            console.error(`${type} 처리 중 오류 발생:`, error);
-            alert(`${type} 처리 중 오류가 발생했습니다.`);
+        } else {
+            try {
+                await fetchPortfolioAndStocks();
+                handleDataRefresh();
+            } catch (error) {
+                console.error(`${type} 처리 중 오류 발생:`, error);
+                alert(`${type} 처리 중 오류가 발생했습니다.`);
+            }
         }
     };
 
@@ -148,14 +154,6 @@ const PortfolioDetailPage = () => {
     const handleAddClick = () => {
         setIsAddAssetModalOpen(true);
     };
-
-    // 거래 내역 더미 데이터
-    const transactionHistory = [
-        { type: '매수', stockName: '삼성전자', amount: 10, price: 70000, date: '2024-01-30' },
-        { type: '매도', stockName: 'LG전자', amount: 5, price: 120000, date: '2024-01-29' },
-        { type: '수정', stockName: 'SK하이닉스', before: { amount: 3, price: 130000 }, after: { amount: 5, price: 125000 }, date: '2024-01-28' },
-        { type: '삭제', stockName: '현대차', amount: 2, price: 180000, date: '2024-01-27' },
-    ];
 
     // 현재 탭에 따른 주식 목록 필터링
     const getFilteredStocks = () => {
@@ -177,50 +175,10 @@ const PortfolioDetailPage = () => {
         return activeTab === '종합자산' ? portfolio?.totalAsset : stocksTotal;
     };
 
-    // 매매일지 카드 컴포넌트
-    const TransactionCard = ({ transaction }) => (
-        <div className="p-4 border rounded-lg space-y-2 bg-white">
-            <div className="flex justify-between items-center">
-                <div className="font-medium">
-                    <span className={`
-                        ${transaction.type === '매수' ? 'text-red-600' : ''}
-                        ${transaction.type === '매도' ? 'text-blue-600' : ''}
-                        ${transaction.type === '수정' ? 'text-yellow-600' : ''}
-                        ${transaction.type === '삭제' ? 'text-gray-600' : ''}
-                    `}>
-                        [{transaction.type}]
-                    </span> {transaction.stockName}
-                </div>
-                <div className="text-sm text-gray-500">{transaction.date}</div>
-            </div>
-            {transaction.type === '수정' ? (
-                <div className="text-sm">
-                    <div className="text-gray-500">
-                        수정 전: {transaction.before.amount}주 / {transaction.before.price.toLocaleString()}원
-                    </div>
-                    <div>
-                        수정 후: {transaction.after.amount}주 / {transaction.after.price.toLocaleString()}원
-                    </div>
-                </div>
-            ) : (
-                <div className="text-sm">
-                    <div>{transaction.amount}주</div>
-                    <div>{transaction.price.toLocaleString()}원</div>
-                </div>
-            )}
-        </div>
-    );
-
     // 주식 목록 또는 매매일지 렌더링
     const renderContent = () => {
         if (activeTab === '매매일지') {
-            return (
-                <div className="space-y-4">
-                    {transactionHistory.map((transaction, index) => (
-                        <TransactionCard key={index} transaction={transaction} />
-                    ))}
-                </div>
-            );
+            return <TransactionHistory portfolioId={portfolioId} accessToken={accessToken} />;
         }
 
         return (
@@ -457,6 +415,8 @@ const PortfolioDetailPage = () => {
                 onClose={() => setIsCashEditModalOpen(false)}
                 currentCash={cash}
                 onUpdate={(amount) => handleModalAction('현금수정', amount)}
+                portfolioId={portfolioId}  // portfolioId prop 추가 확인
+                accessToken={accessToken}  // accessToken prop 추가 확인
             />
 
             <AddAssetModal
