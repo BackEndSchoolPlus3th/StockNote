@@ -118,7 +118,7 @@ const StockList = ({ stocks }) => {
                           ? "text-red-500" 
                           : stock.change?.startsWith('-') 
                             ? "text-blue-500" 
-                            : "text-gray-500"
+                            : "text-red-500"
                       }`}>
                         ({stock.change || "-"})
                       </span>

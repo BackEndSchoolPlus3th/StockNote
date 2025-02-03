@@ -26,107 +26,90 @@ ChartJS.register(
 const StockChart = ({ chartData, periodType }) => {
   const [data, setData] = useState(null);
   const [priceRange, setPriceRange] = useState({ min: 0, max: 0 });
+  const [basePrice, setBasePrice] = useState(0);
 
-  // 시간별 데이터 파싱 (9:00 ~ 15:30)
-  const parseTimeData = (candles) => {
-    const uniqueData = {};
-    const lastValidData = { time: null, close: null };
-    
-    // 장 시작(9:00)부터 장 마감(15:30)까지의 모든 시간 초기화
-    for (let hour = 9; hour <= 15; hour++) {
-      const maxMinute = hour === 15 ? 30 : 59;
-      for (let minute = 0; minute <= maxMinute; minute++) {
-        const formattedTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        uniqueData[formattedTime] = { 
-          time: formattedTime,
-          close: null,
-          volume: 0
-        };
-      }
-    }
-
-    
-
-    // API 데이터 반영
-    candles.forEach(item => {
-      const formattedTime = `${item.time.slice(0, 2)}:${item.time.slice(2, 4)}`;
-      if (uniqueData[formattedTime]) {
-        uniqueData[formattedTime] = {
-          time: formattedTime,
-          close: parseFloat(item.close),
-          volume: parseInt(item.volume) || 0
-        };
-        lastValidData.time = formattedTime;
-        lastValidData.close = parseFloat(item.close);
-      }
-    });
-
-    // 빈 데이터를 마지막 유효 데이터로 채우기
-    Object.keys(uniqueData).forEach(time => {
-      if (uniqueData[time].close === null && lastValidData.close !== null) {
-        uniqueData[time].close = lastValidData.close;
-      }
-    });
-
-    return Object.values(uniqueData);
+  const formatTimeStr = (timeStr) => {
+    // HHMMSS -> HH:MM
+    if (!timeStr || timeStr.length < 4) return null;
+    return `${timeStr.slice(0, 2)}:${timeStr.slice(2, 4)}`;
   };
 
-  const formatDateLabel = (dateStr, type) => {
+  const formatDateLabel = (dateStr) => {
     if (!dateStr) return '';
     
-    let date;
     try {
       // YYYYMMDD 형식 체크
       if (typeof dateStr === 'string' && dateStr.length === 8) {
         const year = dateStr.substring(0, 4);
         const month = dateStr.substring(4, 6);
         const day = dateStr.substring(6, 8);
-        date = new Date(year, parseInt(month) - 1, day);
-      } else {
-        date = new Date(dateStr);
+  
+        switch (periodType) {
+          case 'DAILY':
+            return `${month}/${day}`;
+          case 'WEEKLY':
+            return `${month}/${day}`;
+          case 'MONTHLY':
+            return `${year}.${month}`;
+          case 'YEARLY':
+            return year;
+          default:
+            return `${month}/${day}`;
+        }
       }
-
-      if (isNaN(date.getTime())) {
-        console.warn('Invalid date:', dateStr);
-        return dateStr;
-      }
-
-      switch (type) {
-        case 'TIME':
-          return dateStr; // HH:mm 형식 유지
-        case 'DAILY':
-          return `${date.getMonth() + 1}/${date.getDate()}`;
-        case 'WEEKLY':
-          return `${date.getMonth() + 1}/${date.getDate()}`;
-        case 'MONTHLY':
-          return `${date.getFullYear()}/${date.getMonth() + 1}`;
-        case 'YEARLY':
-          return date.getFullYear().toString();
-        default:
-          return dateStr;
-      }
+      return dateStr;
     } catch (e) {
       console.error('날짜 포맷 에러:', e);
       return dateStr;
     }
   };
 
-  const parsePeriodData = (candles) => {
-    if (!candles || candles.length === 0) return [];
+  const parseTimeData = (rawData) => {
+    if (!rawData?.output1 || !rawData?.output2 || !Array.isArray(rawData.output2)) {
+      console.log('Invalid time data structure:', rawData);
+      return null;
+    }
   
-    const parsedData = candles.map(item => ({
-      time: formatDateLabel(item.time, periodType),
-      close: parseFloat(item.close),
-      volume: parseInt(item.volume) || 0
-    }));
+    // 전일 종가 설정
+    const currentPrice = parseFloat(rawData.output1?.stck_prpr || 0);
+    const priceChange = parseFloat(rawData.output1?.prdy_vrss || 0);
+    setBasePrice(currentPrice - priceChange);
   
-    // 날짜를 반대로 출력하려면 이곳에서 배열을 뒤집기
-    parsedData.reverse();
+    // output2 데이터 가공
+    const timeData = [...rawData.output2]
+      .map(item => {
+        const hour = item.stck_cntg_hour.slice(0, 2);
+        const minute = item.stck_cntg_hour.slice(2, 4);
+        return {
+          time: `${hour}:${minute}`,
+          price: parseFloat(item.stck_prpr)
+        };
+      })
+      .reverse();  // 시간 순서대로 정렬하기 위해 역순으로 변경
   
-    return parsedData;
+    return timeData;
   };
-  
 
+
+  const parsePeriodData = (rawData) => {
+    if (!rawData?.candles || !Array.isArray(rawData.candles) || rawData.candles.length === 0) {
+      console.log('Invalid period data structure:', rawData);
+      return null;
+    }
+
+    // 첫 번째 캔들의 종가를 기준가로 설정
+    setBasePrice(rawData.candles[0].close);
+
+    // 기간별 데이터는 역순으로 정렬 (최신 데이터가 앞으로)
+    return [...rawData.candles]
+        .reverse()
+        .map(candle => ({
+          time: formatDateLabel(candle.time),
+          price: candle.close
+        }));
+    };
+   
+    
   const formatPrice = (value) => {
     if (!value && value !== 0) return '';
     return new Intl.NumberFormat('ko-KR', {
@@ -134,89 +117,109 @@ const StockChart = ({ chartData, periodType }) => {
     }).format(value);
   };
 
-  const formatVolume = (value) => {
-    if (!value && value !== 0) return '';
-    return new Intl.NumberFormat('ko-KR', {
-      maximumFractionDigits: 0,
-      notation: 'compact',
-      compactDisplay: 'short'
-    }).format(value);
-  };
-
   useEffect(() => {
-    if (chartData && chartData.candles && chartData.candles.length > 0) {
-      const parsedData = periodType === 'TIME' 
-        ? parseTimeData(chartData.candles)
-        : parsePeriodData(chartData.candles);
+    if (!chartData) return;
+    
+    console.log('Chart data received:', chartData);
+    
+    // 데이터 파싱
+    const parsedData = periodType === 'TIME' ? 
+      parseTimeData(chartData) : 
+      parsePeriodData(chartData);
 
-      // 가격 범위 계산
-      const prices = parsedData.map(item => item.close).filter(price => price !== null);
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-      setPriceRange({ min: minPrice, max: maxPrice });
+    if (!parsedData || parsedData.length === 0) return;
 
-      // 차트 데이터 구성
-      const chartConfig = {
-        labels: parsedData.map(item => item.time),
-        datasets: [{
-          label: chartData.stockName || chartData.stockCode,
-          data: parsedData.map(item => item.close),
-          borderColor: prices[prices.length - 1] >= prices[0] ? "#FF4560" : "#2E93FA",
+    // 가격 범위 계산
+    const prices = parsedData
+      .map(item => item.price)
+      .filter(price => price !== null && !isNaN(price));
+    
+    if (prices.length === 0) return;
+
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const priceMargin = periodType === 'TIME' 
+    ? maxPrice * 0.02  // 현재가 기준 ±2%
+    : (maxPrice - minPrice) * 0.1;
+  
+  setPriceRange({ 
+    min: Math.floor((minPrice - priceMargin) / 100) * 100,
+    max: Math.ceil((maxPrice + priceMargin) / 100) * 100
+  });
+
+    // 상승/하락 여부 확인
+    const isPositive = periodType === 'TIME' ?
+      parseFloat(chartData.output1?.prdy_vrss || 0) >= 0 :
+      (chartData.summary?.changePrice ?? 0) >= 0;
+
+    // 차트 설정
+    const chartConfig = {
+      labels: parsedData.map(item => item.time),
+      datasets: [
+        {
+          label: '주가',
+          data: parsedData.map(item => item.price),
+          borderColor: isPositive ? "#d24f45" : "#1261c4",
           backgroundColor: (context) => {
             const ctx = context.chart.ctx;
             const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            const isPositive = prices[prices.length - 1] >= prices[0];
-            gradient.addColorStop(0, isPositive ? "rgba(255, 69, 96, 0.1)" : "rgba(46, 147, 250, 0.1)");
+            gradient.addColorStop(0, isPositive ? "rgba(210, 79, 69, 0.1)" : "rgba(18, 97, 196, 0.1)");
             gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
             return gradient;
           },
           borderWidth: 1.5,
           pointRadius: 0,
-          tension: 0.4,
+          tension: 0.1,
           fill: true,
-        }],
-      };
+        }
+      ],
+    };
 
-      setData(chartConfig);
-    }
+    setData(chartConfig);
   }, [chartData, periodType]);
 
   const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      intersect: false,
+      mode: 'index',
+    },
     animation: {
-      duration: 750,
-      easing: 'easeInOutQuart'
+      duration: 0
     },
     plugins: {
       legend: {
         display: false
       },
       tooltip: {
+        enabled: true,
         mode: 'index',
         intersect: false,
-        displayColors: false,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
         titleColor: '#333',
         bodyColor: '#666',
         borderColor: '#ddd',
         borderWidth: 1,
-        padding: 12,
-        titleFont: {
-          size: 13,
-          weight: 'bold',
-          family: "'Pretendard', sans-serif"
+        padding: {
+          top: 8,
+          right: 12,
+          bottom: 8,
+          left: 12
         },
-        bodyFont: {
-          size: 12,
-          family: "'Pretendard', sans-serif"
-        },
+        displayColors: false,
         callbacks: {
-          title: (tooltipItems) => {
-            return tooltipItems[0].label;
-          },
+          title: (items) => items[0].label,
           label: (context) => {
-            return `${formatPrice(context.raw)}원`;
+            const value = context.raw;
+            const diff = value - basePrice;
+            const diffPercent = ((diff / basePrice) * 100).toFixed(2);
+            const sign = diff >= 0 ? '+' : '';
+            
+            return [
+              `현재가: ${formatPrice(value)}`,
+              `전일대비: ${sign}${formatPrice(diff)} (${sign}${diffPercent}%)`
+            ];
           }
         }
       }
@@ -225,67 +228,42 @@ const StockChart = ({ chartData, periodType }) => {
       x: {
         grid: {
           display: false,
-          drawBorder: false
+          drawBorder: false,
         },
         ticks: {
           maxRotation: 0,
           autoSkip: true,
           maxTicksLimit: periodType === 'TIME' ? 6 : 8,
+          color: '#666',
           font: {
             size: 11,
-            family: "'Pretendard', sans-serif"
-          },
-          color: '#999'
+          }
         }
       },
       y: {
         position: 'right',
         grid: {
-          color: '#f0f0f0',
-          drawBorder: false
+          color: 'rgba(0, 0, 0, 0.1)',
+          drawBorder: false,
+        },
+        border: {
+          display: false
         },
         ticks: {
+          color: '#666',
           font: {
             size: 11,
-            family: "'Pretendard', sans-serif"
           },
-          color: '#999',
-          callback: formatPrice
-        }
+          callback: formatPrice,
+          padding: 8,
+        },
+        min: priceRange.min,
+        max: priceRange.max,
       }
-    },
-    interaction: {
-      mode: 'nearest',
-      axis: 'x',
-      intersect: false
     }
-  }), [periodType]);
+  }), [priceRange, basePrice, periodType]);
 
-  const renderPriceSummary = () => {
-    if (!chartData || !chartData.summary) return null;
-    
-    const isPositive = chartData.summary.changeRate >= 0;
-    const changeSymbol = isPositive ? '▲' : '▼';
-    const changeColor = isPositive ? 'text-red-500' : 'text-blue-500';
-    const currentPrice = chartData.candles[chartData.candles.length - 1]?.close;
-
-    return (
-      <div className="space-y-1">
-        <div className="flex items-baseline space-x-2">
-          <span className={`text-2xl font-bold ${changeColor}`}>
-            {formatPrice(currentPrice)}
-          </span>
-          <span className="text-sm text-gray-600">원</span>
-        </div>
-        <div className={`flex items-center space-x-2 text-sm ${changeColor}`}>
-          <span>{changeSymbol} {formatPrice(Math.abs(chartData.summary.changePrice))}원</span>
-          <span>({Math.abs(chartData.summary.changeRate).toFixed(2)}%)</span>
-        </div>
-      </div>
-    );
-  };
-
-  if (!data) {
+  if (!chartData || !data) {
     return (
       <div className="flex justify-center items-center h-64 bg-gray-50 rounded-lg">
         <p className="text-gray-400">데이터를 불러오는 중...</p>
@@ -293,17 +271,48 @@ const StockChart = ({ chartData, periodType }) => {
     );
   }
 
+  // 현재가 정보 계산
+  let currentPrice, priceChange, changePercent;
+
+  if (periodType === 'TIME') {
+    currentPrice = parseFloat(chartData.output1?.stck_prpr || 0);
+    priceChange = parseFloat(chartData.output1?.prdy_vrss || 0);
+    changePercent = parseFloat(chartData.output1?.prdy_ctrt || 0);
+  } else if (chartData.candles && chartData.candles.length > 0) {
+    currentPrice = chartData.candles[0].close;
+    priceChange = chartData.summary?.changePrice || 0;
+    changePercent = chartData.summary?.changeRate || 0;
+  }
+
+  const isPositive = priceChange >= 0;
+  const changeColor = isPositive ? 'text-red-500' : 'text-blue-500';
+
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm">
-      <div className="mb-6">
-        {renderPriceSummary()}
+    <div className="bg-white rounded-xl p-4 space-y-4">
+      <div className="space-y-1">
+        <div className="flex items-baseline gap-2">
+          <span className={`text-2xl font-bold ${changeColor}`}>
+            {formatPrice(currentPrice)}
+          </span>
+          <span className="text-sm text-gray-600">KRW</span>
+        </div>
+        <div className={`flex items-center gap-2 ${changeColor}`}>
+          <span className="text-sm">
+            {isPositive ? '▲' : '▼'} {Math.abs(priceChange).toLocaleString()}
+          </span>
+          <span className="text-sm">
+            ({Math.abs(changePercent)}%)
+          </span>
+        </div>
       </div>
+
       <div className="h-64">
         <Line data={data} options={options} />
       </div>
-      <div className="flex justify-between mt-4 text-xs text-gray-500">
-        <div>최저 {formatPrice(priceRange.min)}원</div>
-        <div>최고 {formatPrice(priceRange.max)}원</div>
+
+      <div className="flex justify-between text-xs text-gray-500">
+        <div>최저 {formatPrice(priceRange.min)}</div>
+        <div>최고 {formatPrice(priceRange.max)}</div>
       </div>
     </div>
   );
