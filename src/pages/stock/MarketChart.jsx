@@ -28,9 +28,9 @@ const MarketChart = () => {
     const fetchData = async () => {
       try {
         const [kospiRes, kosdaqRes, kospi200Res] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/filtered/kospi`),
-          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/filtered/kosdaq`),
-          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/filtered/kospi200`)
+          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stockApis/filtered/kospi`),
+          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stockApis/filtered/kosdaq`),
+          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stockApis/filtered/kospi200`)
         ]);
 
         setIndexData({
@@ -40,9 +40,9 @@ const MarketChart = () => {
         });
 
         const [kospiDetailRes, kosdaqDetailRes, kospi200DetailRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/kospi`),
-          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/kosdaq`),
-          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/kospi200`)
+          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stockApis/kospi`),
+          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stockApis/kosdaq`),
+          axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stockApis/kospi200`)
         ]);
 
         setDetailData({

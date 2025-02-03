@@ -4,6 +4,8 @@ import PortfolioPage from './pages/portfolio/portfolio/PortfolioPage';
 import PortfolioDetailPage from './pages/portfolio/pfStock/PortfolioDetailPage';
 import MainPage from './pages/stock/MainPage';
 import Login from './pages/Login';
+import StockMainPage from './stock/pages/StockMainPage';
+import StockDetailPage from './stock/pages/StockDetailPage';
 import Community from './pages/community/articles/Article';
 import CreateArticle from './pages/community/articles/CreateArticle';
 import UpdateArticle from './pages/community/articles/UpdateArticle';
@@ -17,6 +19,9 @@ function App() {
                 <Route path="/" element={<MainPage />} />
                 <Route path="/portfolio" element={<PortfolioPage />} />
                 <Route path="/portfolio/:portfolioId" element={<PortfolioDetailPage />} />
+                <Route path="/community" element={<div>커뮤니티 페이지</div>} />
+                <Route path="/stocks" element={<StockMainPage />} />
+                <Route path="/stocks/:stockCode" element={<StockDetailPage />} />
                 <Route path="/community/article/:id" element={<Community />} />
                 <Route path="/community/articles" element={<CommunityList />} />
                 <Route path="/community/editor" element={<CreateArticle />} />
