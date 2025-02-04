@@ -11,13 +11,13 @@ import axios from 'axios';
 const MyPage = () => {
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   const token = localStorage.getItem('accessToken');
-  //   if (!token) {
-  //     navigate('/login');
-  //   }
-  // }, [navigate]);
-  const { isAuthenticated, user, updateUser, accessToken } = useAuth();
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      navigate('/login');
+    }
+  }, [navigate]);
+  const { user, updateUser, accessToken } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(user?.name || '');
   const [error, setError] = useState('');
@@ -47,7 +47,7 @@ const MyPage = () => {
   const fetchUserPosts = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post/my`,
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/user/posts`,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -63,13 +63,14 @@ const MyPage = () => {
   const fetchUserComments = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post/1/comments/my`,
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/user/comments`,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
           }
         }
       );
+      console.log(response.data.data.content);
       setComments(response.data.data.content);
     } catch (error) {
       console.error('댓글 조회 실패:', error);
