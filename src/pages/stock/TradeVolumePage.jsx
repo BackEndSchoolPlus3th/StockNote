@@ -21,7 +21,7 @@ const TradeVolumePage = () => {
     const fetchData = async (targetDate) => {
         try {
             const formattedDate = formatDateForAPI(targetDate);
-            const response = await axios.get('/api/volume', {
+            const response = await axios.get('/api/v1/stockApis/volume', {
                 params: { date: formattedDate }
             });
 

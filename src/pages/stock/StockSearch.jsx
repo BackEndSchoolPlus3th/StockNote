@@ -30,7 +30,9 @@ const StockSearch = ({ isOpen, onClose, onAddStock }) => {
           setSearchResults([]);
           return;
         }
-
+        console.log('encodeURIComponent:', searchTerm);
+        
+        console.log('encodeURIComponent:', encodeURIComponent(searchTerm));
         const response = await fetch(`/api/v1/stocks?name=${encodeURIComponent(searchTerm)}`, {
           headers: {
             'Content-Type': 'application/json',
