@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import StockChart from '@/components/StockChart';
+import StockChart from '@/pages/stock/stockDetail/StockChart';
 
 const StockDetailPage = () => {
   const [stockData, setStockData] = useState(null);
