@@ -1,12 +1,14 @@
+// StockMainPage.jsx
 import React, { useState, useEffect } from "react";
+import axios from 'axios'; // axios로 변경
 import StockList from "./StockList";
 import StockSearch from "./StockSearch";
 import { Button } from "@/components/ui/button";
-import { Outlet } from 'react-router-dom';
 
 const StockMainPage = () => {
   const [stocks, setStocks] = useState([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
 
   const fetchStocks = async () => {
     try {
@@ -36,6 +38,27 @@ const StockMainPage = () => {
     }
   };
 
+  const handleDeleteStock = async (stockCode) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      
+      const response = await axios.delete(`/api/v1/stocks`, {
+        params: {
+          stockCode: stockCode
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+  
+      if (response.status === 200) {
+        await fetchStocks();
+      }
+    } catch (error) {
+      console.error("❌ 주식 삭제 중 오류 발생:", error);
+    }
+  };
+
   useEffect(() => {
     fetchStocks();
   }, []);
@@ -43,6 +66,10 @@ const StockMainPage = () => {
   const handleAddStock = async () => {
     await fetchStocks(); 
     setIsSearchOpen(false);
+  };
+
+  const toggleDeleteMode = () => {
+    setIsDeleteMode(!isDeleteMode);
   };
 
   return (
@@ -54,24 +81,30 @@ const StockMainPage = () => {
               <h2 className="text-2xl font-bold">나의 관심 종목</h2>
             </div>
             <div className="w-[805px] flex justify-end mb-2">
-            <div className="space-x-1">
-              <Button 
-                variant="outline"
-                onClick={() => setIsSearchOpen(true)}
-              >
-                추가
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => setIsSearchOpen(true)}
-              >
-                삭제
-              </Button>
+              <div className="space-x-1">
+                <Button 
+                  variant="outline"
+                  onClick={() => setIsSearchOpen(true)}
+                >
+                  추가
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={toggleDeleteMode}
+                >
+                  {isDeleteMode ? '취소' : '삭제'}
+                </Button>
               </div>
             </div>
 
             <div className="flex justify-center w-full">
-                <StockList stocks={stocks} />
+                <StockList 
+                  stocks={stocks} 
+                  onAdd={() => setIsSearchOpen(true)}
+                  onDelete={handleDeleteStock}
+                  isDeleteMode={isDeleteMode}
+                  setIsDeleteMode={setIsDeleteMode}
+                />
             </div>
           </>
         )}
