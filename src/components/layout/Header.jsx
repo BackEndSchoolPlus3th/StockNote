@@ -17,6 +17,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem
 } from "@/components/ui/dropdown-menu";
+import HeaderSearch from './HeaderSearch';
 
 const navigationItems = [
   { label: "포트폴리오", href: "/portfolio" },
@@ -58,44 +59,34 @@ export default function Frame() {
           </NavigationMenuList>
         </NavigationMenu>
 
-
-        {/* Search Bar */}
-        <div className="relative flex-1 max-w-[430px] mx-4">
-          <div className="relative">
-            <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 w-[25px] h-[25px] text-gray-400" />
-            <Input
-              className="h-[38px] pl-14 rounded-[20px] border-black shadow-[0px_4px_4px_#00000040]"
-              placeholder="주식 종목 검색"
-            />
-          </div>
-        </div>
+        <HeaderSearch />
 
         {/* User Section - Conditional Rendering */}
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
             <>
-                 <div className="flex items-center gap-2">
-      <DropdownMenu>
-        <DropdownMenuTrigger className="focus:outline-none">
-          <div className="flex items-center gap-2 hover:opacity-80">
-            <Avatar className="w-[35px] h-[35px]">
-              <AvatarImage src={user?.profile || "https://github.com/shadcn.png"} alt="User avatar" />
-              <AvatarFallback>{user?.name?.[0] || 'UN'}</AvatarFallback>
-            </Avatar>
-            <span className="font-h4 text-[16px]">{user?.name || "사용자"}</span>
-          </div>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => navigate('/mypage')}>
-            마이페이지
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="focus:outline-none">
+                    <div className="flex items-center gap-2 hover:opacity-80">
+                      <Avatar className="w-[35px] h-[35px]">
+                        <AvatarImage src={user?.profile || "https://github.com/shadcn.png"} alt="User avatar" />
+                        <AvatarFallback>{user?.name?.[0] || 'UN'}</AvatarFallback>
+                      </Avatar>
+                      <span className="font-h4 text-[16px]">{user?.name || "사용자"}</span>
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate('/mypage')}>
+                      마이페이지
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
 
-    <Button variant="ghost" size="icon" className="relative">
-      <Bell className="w-[25px] h-[27px]" />
-    </Button>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="w-[25px] h-[27px]" />
+              </Button>
 
               <Button
                 onClick={handleLogout}
