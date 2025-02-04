@@ -11,12 +11,12 @@ import axios from 'axios';
 const MyPage = () => {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      navigate('/login');
-    }
-  }, [navigate]);
+  // useEffect(() => {
+  //   const token = localStorage.getItem('accessToken');
+  //   if (!token) {
+  //     navigate('/login');
+  //   }
+  // }, [navigate]);
   const { isAuthenticated, user, updateUser, accessToken } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(user?.name || '');
