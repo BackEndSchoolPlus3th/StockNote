@@ -11,7 +11,7 @@ export function LoginForm({ className, ...props }) {
 
   const handleKakaoLogin = () => {
     // Redirect to the backend Google OAuth2 authorization endpoint
-    window.location.href = `${import.meta.env.VITE_CORE_API_BASE_URL}oauth2/authorization/kakao`
+    window.location.href = `${import.meta.env.VITE_CORE_API_BASE_URL}/oauth2/authorization/kakao`
   }
 
   return (
