@@ -30,7 +30,7 @@ const UpdateArticle = () => {
     const fetchPost = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post/${id}`
+          `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${id}`
         );
         const post = response.data.data;
         console.log(post.category);
@@ -53,7 +53,7 @@ const UpdateArticle = () => {
     console.log(formData);
     try {
       const response = await axios.put(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post/${id}`,
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${id}`,
         {
           ...formData,
           hashtags: formData.hashtags.split(',').map(tag => tag.trim())

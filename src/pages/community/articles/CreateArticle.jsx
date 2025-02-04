@@ -27,7 +27,7 @@ const CreateArticle = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post`,
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts`,
         {
           ...formData,
           hashtags: formData.hashtags.split(',').map(tag => tag.trim())

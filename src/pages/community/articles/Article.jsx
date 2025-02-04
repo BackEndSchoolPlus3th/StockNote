@@ -12,16 +12,16 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Community = () => {
   const { id } = useParams();
-  const [article, setArticle] = useState(null);
+  const [post, setPost] = useState(null);
   const navigate = useNavigate();
 
   const fetchArticle = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post/${id}`
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${id}`
       );
       console.log(response.data.data);
-      setArticle(response.data.data);
+      setPost(response.data.data);
     } catch (error) {
       console.error('게시글 조회 실패:', error);
     }
@@ -32,7 +32,6 @@ const Community = () => {
   }, [id]);
 
   const {  user } = useAuth();
-  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editContent, setEditContent] = useState('');
@@ -41,7 +40,7 @@ const Community = () => {
   const handleAddComment = async () => {
     try {
       await axios.post(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post/${id}/comments`,
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${id}/comments`,
         {
           body: newComment
         },
@@ -62,7 +61,7 @@ const Community = () => {
     try {
       console.log(editContent);
       await axios.patch(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post/${id}/comments/${commentId}`,
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${id}/comments/${commentId}`,
         { body: editContent },
         {
           headers: {
@@ -80,7 +79,7 @@ const Community = () => {
   const handleDeleteComment = async (commentId) => {
     try {
       await axios.delete(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post/${id}/comments/${commentId}`,
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${id}/comments/${commentId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`
@@ -93,10 +92,31 @@ const Community = () => {
     }
   };
 
+  const handleDeleteArticle = async () => {
+    if (!window.confirm('게시글을 삭제하시겠습니까?')) {
+      return;
+    }
+  
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      );
+      navigate('/community/articles'); // Redirect to articles list
+    } catch (error) {
+      console.error('게시글 삭제 실패:', error);
+      alert('게시글 삭제에 실패했습니다.');
+    }
+  };
+
   useEffect(() => {
   }, [id]);
 
-  if (!article) return <div>Loading...</div>;
+  if (!post) return <div>Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -117,39 +137,70 @@ const Community = () => {
 
             <Card className="p-6">
               <CardHeader className="px-4">
-                <CardTitle>{article.title}</CardTitle>
+                <CardTitle>{post.title}</CardTitle>
                 <div className="flex items-center gap-2 pt-2">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={article.profile} alt="User" />
-                    <AvatarFallback>{article.userId?.toString().charAt(0)}</AvatarFallback>
+                    <AvatarImage src={post.profile} alt="User" />
+                    <AvatarFallback>{post.userId?.toString().charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <span>{article.username}</span>
+                  <span>{post.username}</span>
                   <span className="text-gray-500">
-                    {new Date(article.createdAt).toLocaleDateString()}
+                    {new Date(post.createdAt).toLocaleDateString()}
                   </span>
                 </div>
               </CardHeader>
               <CardContent className="px-4">
-                <p className="text-xl leading-relaxed mb-8">{article.body}</p>
+                <p className="text-xl leading-relaxed mb-8">{post.body}</p>
                 <div className="flex gap-2">
-                  {article.hashtags?.map((tag, index) => (
+                  {post.hashtags?.map((tag, index) => (
                     <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
                       #{tag}
                     </span>
                   ))}
                 </div>
               </CardContent>
+              {post.authorId === user?.id && (
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent card click event
+                              navigate(`/community/article/${post.id}/editor`, {
+                                state: {
+                                  title: post.title,
+                                  body: post.body,
+                                  hashtags: post.hashtags,
+                                  isEditing: true
+                                }
+                              });
+                            }}
+                          >
+                            수정
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteArticle();
+                            }}
+                          >
+                            삭제
+                          </Button>
+                        </div>
+                      )}
             </Card>
 
             <Card className="mt-4">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="font-semibold">댓글 {article.comments.length}개</span>
+                  <span className="font-semibold">댓글 {post.comments.length}개</span>
                 </div>
                 
                 {/* Comment List */}
                 <div className="space-y-4 mb-4">
-                  {article.comments.map((comment) => (
+                  {post.comments.map((comment) => (
                     <div key={comment.id} className="border-b pb-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
