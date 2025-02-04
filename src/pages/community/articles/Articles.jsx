@@ -29,8 +29,8 @@ const CommunityList = () => {
     
       const mappedCategory = categoryMapping[category];
       const url = category === "전체" 
-        ? `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post`
-        : `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/post?category=${mappedCategory}`;
+        ? `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts`
+        : `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts?category=${mappedCategory}`;
         
       const response = await axios.get(url);
       console.log(url);
