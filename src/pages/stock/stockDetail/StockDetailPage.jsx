@@ -24,8 +24,9 @@ const StockDetailPage = () => {
         const priceRes = await axios.get(`/api/v1/stockApis/price?stockCode=${stockCode}`);
         setStockData(priceRes.data);
 
-        const voteRes = await axios.get(`/api/v1/stocks/${stockCode}/vote-statistics`);
-        setVoteStats(voteRes.data);
+        const voteRes = await axios.get(`/api/v1/votes/${stockCode}/vote-statistics`);
+        console.log('🔄 최신 투표 데이터 (새로고침 후):', voteRes.data);
+        setVoteStats(voteRes.data.data);
 
         const now = new Date();
         const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
@@ -110,7 +111,7 @@ const StockDetailPage = () => {
       const token = localStorage.getItem('accessToken');
 
       const response = await axios.post(
-        `/api/v1/stocks/${stockCode}/vote`,
+        `/api/v1/votes/${stockCode}`,
         {
           buy: voteType === 'BUY',
           sell: voteType === 'SELL'
@@ -129,14 +130,18 @@ const StockDetailPage = () => {
 
         // 투표 통계 갱신
         const voteRes = await axios.get(
-          `/api/v1/stocks/${stockCode}/vote-statistics`,
+          `/api/v1/votes/${stockCode}/vote-statistics`,
           {
             headers: {
               'Authorization': `Bearer ${token}`
             }
           }
         );
-        setVoteStats(voteRes.data);
+        console.log('🔄 최신 투표 데이터:', voteRes.data);
+        localStorage.setItem(`voteStats_${stockCode}`, JSON.stringify(voteRes.data.data));
+        setVoteStats(voteRes.data.data);
+        console.log('🔄 voteStats 변경됨:', voteStats);
+        
       }
     } catch (error) {
       if (error.response?.status === 401) {
@@ -147,6 +152,13 @@ const StockDetailPage = () => {
       setTimeout(() => setVoteMessage(''), 2000);
     }
   };
+  useEffect(() => {
+    const savedVoteStats = localStorage.getItem(`voteStats_${stockCode}`);
+    if (savedVoteStats) {
+      console.log('🔄 로컬 스토리지에서 투표 데이터 복원:', JSON.parse(savedVoteStats));
+      setVoteStats(JSON.parse(savedVoteStats));
+    }
+  }, [stockCode]);
 
   // 로딩 상태 표시
   if (!stockData || !voteStats || !chartData) {
@@ -183,7 +195,7 @@ const StockDetailPage = () => {
               className="hover:bg-blue-50"
               onClick={() => {/* Add to portfolio logic */}}
             >
-              관심종목
+              +
             </Button>
           </div>
 
@@ -251,11 +263,11 @@ const StockDetailPage = () => {
           <div className="relative h-8 bg-gray-200 rounded-full overflow-hidden">
             <div
               className="absolute h-full bg-blue-500"
-              style={{ width: `${buyPercentage}%` }}
+              style={{ width: `${voteStats?.buyPercentage || 0}%` }}
             />
             <div
               className="absolute h-full bg-red-500 right-0"
-              style={{ width: `${sellPercentage}%` }}
+              style={{ width: `${voteStats?.sellPercentage || 0}%` }}
             />
           </div>
           <div className="flex justify-between mt-2">

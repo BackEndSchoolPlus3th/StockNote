@@ -21,8 +21,8 @@ import HeaderSearch from './HeaderSearch';
 
 const navigationItems = [
   { label: "포트폴리오", href: "/portfolio" },
-  { label: "커뮤니티", href: "/community/articles" },
-  { label: "종목 정보", href: "/stocks" },
+  { label: "관심종목", href: "/stocks" },
+  { label: "커뮤니티", href: "/community/articles" }
 ];
 
 export default function Frame() {
@@ -45,11 +45,11 @@ export default function Frame() {
         </Link>
 
         <NavigationMenu className="ml-8">
-          <NavigationMenuList className="flex gap-8">  {/* 여기에 gap 추가 */}
+          <NavigationMenuList className="flex gap-8"> 
             {navigationItems.map((item) => (
               <NavigationMenuItem key={item.label}>
                 <Link
-                  to={item.href}  // href를 to로 변경
+                  to={item.href}
                   className="px-[5px] py-2.5 text-black hover:bg-gray-100 rounded-[5px] font-h4 text-[16px]"
                 >
                   {item.label}
