@@ -22,6 +22,7 @@ const PortfolioDetailPage = () => {
     const [activeTab, setActiveTab] = useState('종합자산');
     const [isEditMode, setIsEditMode] = useState(false);
     const [cash, setCash] = useState(0);
+    const [sortType, setSortType] = useState('자산가치 순');
 
     // 모달 상태 관리
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -175,11 +176,31 @@ const PortfolioDetailPage = () => {
         return activeTab === '종합자산' ? portfolio?.totalAsset : stocksTotal;
     };
 
+    // 정렬된 주식 목록을 반환하는 함수 추가
+    const getSortedStocks = (stocks) => {
+        return [...stocks].sort((a, b) => {
+            switch (sortType) {
+                case '자산가치 순':
+                    return (b.currentPrice * b.pfstockCount) - (a.currentPrice * a.pfstockCount);
+                case '수익률 순':
+                    const profitRateA = ((a.currentPrice - a.pfstockPrice) / a.pfstockPrice) * 100;
+                    const profitRateB = ((b.currentPrice - b.pfstockPrice) / b.pfstockPrice) * 100;
+                    return profitRateB - profitRateA;
+                case '종목명 순':
+                    return a.stockName.localeCompare(b.stockName);
+                default:
+                    return 0;
+            }
+        });
+    };
+
     // 주식 목록 또는 매매일지 렌더링
     const renderContent = () => {
         if (activeTab === '매매일지') {
             return <TransactionHistory portfolioId={portfolioId} accessToken={accessToken} />;
         }
+
+        const sortedStocks = getSortedStocks(getFilteredStocks());
 
         return (
             <div className="space-y-4">
@@ -214,8 +235,8 @@ const PortfolioDetailPage = () => {
                     </div>
                 )}
 
-                {/* 필터링된 주식 목록 */}
-                {getFilteredStocks().map((stock) => (
+                {/* 필터링된 주식 목록을 정렬된 목록으로 변경 */}
+                {sortedStocks.map((stock) => (
                     <div key={stock.id} className="p-4 border rounded-lg space-y-4">
                         <div className="flex justify-between items-center">
                             <div className="flex items-center gap-3">
@@ -351,14 +372,20 @@ const PortfolioDetailPage = () => {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" className="gap-2">
-                                    정렬기준
+                                    {sortType}
                                     <ChevronDown className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                                <DropdownMenuItem>자산가치 순</DropdownMenuItem>
-                                <DropdownMenuItem>수익률 순</DropdownMenuItem>
-                                <DropdownMenuItem>종목명 순</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSortType('자산가치 순')}>
+                                    자산가치 순
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSortType('수익률 순')}>
+                                    수익률 순
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSortType('종목명 순')}>
+                                    종목명 순
+                                </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                         <Button
