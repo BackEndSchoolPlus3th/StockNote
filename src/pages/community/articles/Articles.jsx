@@ -140,7 +140,13 @@ const CommunityList = () => {
                 </button>
               ))}
             </div>
-            
+
+            {posts.length === 0 ? (
+      <div className="flex flex-col items-center justify-center py-20">
+        <p className="text-gray-500 text-lg mb-2">아직 게시글이 없습니다.</p>
+        <p className="text-gray-400">첫 게시글의 주인공이 되어보세요!</p>
+      </div>
+    ) : (
             <div className="space-y-4">
               {posts.map((post) => (
                 <Card 
@@ -175,37 +181,6 @@ const CommunityList = () => {
                           </div>
                         </div>
                       </div>
-                      {post.authorId === user?.id && (
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent card click event
-                              navigate(`/community/article/${post.id}/editor`, {
-                                state: {
-                                  title: post.title,
-                                  body: post.body,
-                                  hashtags: post.hashtags,
-                                  isEditing: true
-                                }
-                              });
-                            }}
-                          >
-                            수정
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Add delete logic here
-                            }}
-                          >
-                            삭제
-                          </Button>
-                        </div>
-                      )}
                     </div>
                     <p className="text-gray-600 mt-2">{post.body}</p>
                     
@@ -252,7 +227,9 @@ const CommunityList = () => {
                 </Card>
               ))}
             </div>
+    )}
           </div>
+           
 
           {/* Right: Sidebar */}
           <div>
