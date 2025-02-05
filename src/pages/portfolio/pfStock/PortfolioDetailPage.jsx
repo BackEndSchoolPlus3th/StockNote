@@ -12,7 +12,7 @@ import { BuyStockModal } from './modals/BuyStockModal';
 import { SellStockModal } from './modals/SellStockModal';
 import { EditCashModal } from './modals/EditCashModal';
 import { AddAssetModal } from './portfolioSurmmary/AddAssetModal';  // AddAssetModal import 추가
-import TransactionHistory from './transactionHistory/TransactionHistory';
+import TransactionHistory from './portfolioSurmmary/TransactionHistory';
 
 const PortfolioDetailPage = () => {
     const { accessToken } = useAuth();

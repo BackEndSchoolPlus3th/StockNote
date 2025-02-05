@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from '@/contexts/AuthContext'; //useAuth 훅 가져오기
 import axios from 'axios';
+// HistoryModal import 추가
+import HistoryModal from './HistoryModal';
 
 const PortfolioPage = () => {
     const navigate = useNavigate();
@@ -21,6 +23,7 @@ const PortfolioPage = () => {
         name: '',
         description: ''
     });
+    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
     useEffect(() => {
         if (accessToken) {
@@ -82,10 +85,32 @@ const PortfolioPage = () => {
         }
     };
 
+    const handleTotalAssetsClick = async () => {
+        try {
+            const response = await axios.get(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/my`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (response.data && response.data.data) {
+                // totalPortfolioDetail 페이지로 이동하면서 데이터 전달
+                navigate('/portfolio/total', {
+                    state: { portfolioData: response.data.data }
+                });
+            }
+        } catch (error) {
+            console.error('내 포트폴리오 조회 실패:', error);
+        }
+    };
+
     return (
-        <div className="container mx-auto px-4 py-8 w-1/2">
-            <div className="frame-427318266 bg-white rounded-lg shadow-lg p-6">
-                <div className="frame-427318265 space-y-6">
+        <div className="container mx-auto px-4 py-8 w-1/2  ">
+            <div className="frame-427318266 bg-white rounded-lg shadow-lg p-6 border border-gray-200">
+                <div className="frame-427318265 space-y-6 ">
                     {/* 상단 아이콘 영역 */}
                     <div className="frame-427318254 flex justify-between items-center">
                         <div className="frame-427318257">
@@ -113,36 +138,51 @@ const PortfolioPage = () => {
                     {/* 금액 표시 영역 */}
                     <div className="frame-427318255">
                         <div className="frame-427318260">
-                            <div className="frame-427318258 flex items-center space-x-2">
-                                <div className="_3-100-000 text-2xl font-bold">
-                                    {totalStats.totalAssets.toLocaleString()}원
-                                </div>
-                                <img
-                                    className="weui-arrow-filled w-5 h-5"
-                                    src={arrowIcon}
-                                    alt="arrow"
-                                />
+
+                            <div className="flex items-center space-x-2">
+                                <button
+                                    onClick={handleTotalAssetsClick}
+                                    className="w-full hover:bg-gray-50 rounded-lg transition-colors"
+                                >
+                                    <div className="flex items-center justify-start space-x-2 px-2">
+                                        <span className="_3-100-000 text-2xl font-bold">
+                                            {totalStats.totalAssets.toLocaleString()}원
+                                        </span>
+                                        <img
+                                            className="weui-arrow-filled w-5 h-5"
+                                            src={arrowIcon}
+                                            alt="arrow"
+                                        />
+                                    </div>
+                                </button>
                             </div>
-                            <div className="frame-427318259">
+
+                            <div className="frame-427318259 px-2">
                                 <div className={`_500-00 ${totalStats.totalProfits >= 0 ? 'text-red-500' : 'text-blue-500'}`}>
                                     총 수익 ({totalStats.totalProfits >= 0 ? '+' : ''}{totalStats.totalProfits.toLocaleString()}원)
                                 </div>
                             </div>
+
                         </div>
                     </div>
 
                     {/* 매매일지 영역 */}
                     <div className="frame-427318256">
-                        <div className="frame-427318263 flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                            <div className="frame-427318262">
-                                <div className="text-lg font-medium">매매일지</div>
+                        <button
+                            onClick={() => setIsHistoryModalOpen(true)}
+                            className="w-full"
+                        >
+                            <div className="frame-427318263 flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div className="frame-427318262">
+                                    <div className="text-lg font-medium">매매일지</div>
+                                </div>
+                                <img
+                                    className="weui-arrow-filled2 w-5 h-5"
+                                    src={arrowIcon}
+                                    alt="arrow"
+                                />
                             </div>
-                            <img
-                                className="weui-arrow-filled2 w-5 h-5"
-                                src={arrowIcon}
-                                alt="arrow"
-                            />
-                        </div>
+                        </button>
                     </div>
 
                     {/* 포트폴리오 목록 */}
@@ -169,45 +209,57 @@ const PortfolioPage = () => {
             </div>
 
             {/* 포트폴리오 추가 모달 */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white rounded-lg p-6 w-96">
-                        <h2 className="text-xl font-bold mb-4">새 포트폴리오 추가</h2>
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">포트폴리오 이름</label>
-                                <Input
-                                    type="text"
-                                    value={newPortfolio.name}
-                                    onChange={(e) => setNewPortfolio({ ...newPortfolio, name: e.target.value })}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">설명</label>
-                                <Input
-                                    type="text"
-                                    value={newPortfolio.description}
-                                    onChange={(e) => setNewPortfolio({ ...newPortfolio, description: e.target.value })}
-                                />
-                            </div>
-                            <div className="flex justify-end space-x-3">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setIsModalOpen(false)}
-                                >
-                                    취소
-                                </Button>
-                                <Button
-                                    onClick={handleAddPortfolio}
-                                >
-                                    추가
-                                </Button>
+            {
+                isModalOpen && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <div className="bg-white rounded-lg p-6 w-96">
+                            <h2 className="text-xl font-bold mb-4">새 포트폴리오 추가</h2>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">포트폴리오 이름</label>
+                                    <Input
+                                        type="text"
+                                        value={newPortfolio.name}
+                                        onChange={(e) => setNewPortfolio({ ...newPortfolio, name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">설명</label>
+                                    <Input
+                                        type="text"
+                                        value={newPortfolio.description}
+                                        onChange={(e) => setNewPortfolio({ ...newPortfolio, description: e.target.value })}
+                                    />
+                                </div>
+                                <div className="flex justify-end space-x-3">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setIsModalOpen(false)}
+                                    >
+                                        취소
+                                    </Button>
+                                    <Button
+                                        onClick={handleAddPortfolio}
+                                    >
+                                        추가
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+
+            {/* 매매일지 모달 */}
+            {
+                isHistoryModalOpen && (
+                    <HistoryModal
+                        onClose={() => setIsHistoryModalOpen(false)}
+                        accessToken={accessToken}
+                    />
+                )
+            }
+        </div >
     );
 };
 
