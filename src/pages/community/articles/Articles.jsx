@@ -21,6 +21,7 @@ const CommunityList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || "전체");
   const [posts, setPosts] = useState([]);
+  const [likedPosts, setLikedPosts] = useState({});
   const categories = ["전체", "자유토론", "투자분석", "질문", "뉴스분석"];
   const navigate = useNavigate();
 
@@ -41,9 +42,62 @@ const CommunityList = () => {
     }
   };
 
+  // 좋아요 상태 확인 함수
+  const checkLikeStatus = async (postId) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${postId}/likes/check`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      );
+      setLikedPosts(prev => ({
+        ...prev,
+        [postId]: response.data.data
+      }));
+    } catch (error) {
+      console.error('좋아요 상태 확인 실패:', error);
+    }
+  };
+
+  // 좋아요 토글 함수
+  const toggleLike = async (postId, isLiked) => {
+    try {
+      const endpoint = isLiked ? 'unlike' : 'like';
+      await axios.post(
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${postId}/${endpoint}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      );
+      
+      // 게시글 목록 새로고침
+      await fetchPosts(selectedCategory);
+      // 좋아요 상태 업데이트
+      setLikedPosts(prev => ({
+        ...prev,
+        [postId]: !isLiked
+      }));
+    } catch (error) {
+      console.error('좋아요 토글 실패:', error);
+    }
+  };
+
   useEffect(() => {
     fetchPosts(selectedCategory);
   }, [selectedCategory]);
+
+  useEffect(() => {
+    // 각 게시물의 좋아요 상태 확인
+    posts.forEach(post => {
+      checkLikeStatus(post.id);
+    });
+  }, [posts]);
 
   const handlePostClick = (postId) => {
     navigate(`/community/article/${postId}`);
@@ -86,7 +140,13 @@ const CommunityList = () => {
                 </button>
               ))}
             </div>
-            
+
+            {posts.length === 0 ? (
+      <div className="flex flex-col items-center justify-center py-20">
+        <p className="text-gray-500 text-lg mb-2">아직 게시글이 없습니다.</p>
+        <p className="text-gray-400">첫 게시글의 주인공이 되어보세요!</p>
+      </div>
+    ) : (
             <div className="space-y-4">
               {posts.map((post) => (
                 <Card 
@@ -121,51 +181,55 @@ const CommunityList = () => {
                           </div>
                         </div>
                       </div>
-                      {post.authorId === user?.id && (
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="ghost" 
+                    </div>
+                    <p className="text-gray-600 mt-2">{post.body}</p>
+                    
+                    <div className="flex justify-between items-center mt-4">
+                      <div className="flex gap-2">
+                        {post.hashtags?.map((tag, index) => (
+                          <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                      
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
                             size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent card click event
-                              navigate(`/community/article/${post.id}/editor`, {
-                                state: {
-                                  title: post.title,
-                                  body: post.body,
-                                  hashtags: post.hashtags,
-                                  isEditing: true
-                                }
-                              });
-                            }}
-                          >
-                            수정
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
+                            className="hover:bg-transparent p-1"
                             onClick={(e) => {
                               e.stopPropagation();
-                              // Add delete logic here
+                              toggleLike(post.id, likedPosts[post.id]);
                             }}
                           >
-                            삭제
+                            <Heart 
+                              className={`h-6 w-6 transition-colors ${
+                                likedPosts[post.id] ? 'fill-red-500 text-red-500' : 'text-gray-400 hover:text-red-500'
+                              }`}
+                            />
                           </Button>
+                          <span className="text-sm font-medium text-gray-500">
+                            {post.likeCount || 0}
+                          </span>
                         </div>
-                      )}
-                    </div>
-                    <p className="text-gray-600">{post.body}</p>
-                    <div className="flex gap-2 mt-4">
-                      {post.hashtags?.map((tag, index) => (
-                        <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
-                          #{tag}
-                        </span>
-                      ))}
+                        
+                        <div className="flex items-center gap-1">
+                          <MessageCircle className="h-5 w-5 text-gray-400" />
+                          <span className="text-sm font-medium text-gray-500">
+                            {post.comments?.length || 0}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
+    )}
           </div>
+           
 
           {/* Right: Sidebar */}
           <div>

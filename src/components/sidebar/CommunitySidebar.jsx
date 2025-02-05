@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Search } from "lucide-react";
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const popularPosts = Array(4).fill({
   title: "좀 봐주세요",
@@ -17,6 +19,28 @@ const votingItems = Array(3).fill({
 });
 
 const CommunitySidebar = () => {
+  const [popularVotes, setPopularVotes] = useState([]);
+
+  useEffect(() => {
+    const fetchPopularVotes = async () => {
+      try {
+        const response = await axios.get('/api/v1/votes/popular');
+        console.log('🔥 인기 투표 데이터:', response.data);
+        
+        if (response.data.data) {
+          setPopularVotes(response.data.data.stockVoteList);
+        } else {
+          console.warn('⚠ 인기 투표 데이터가 없음:', response.data);
+        }
+      } catch (error) {
+        console.error('인기 투표 데이터 로딩 실패:', error);
+      }
+    };
+
+    fetchPopularVotes();
+  }, []);
+
+
   return (
   <div className="bg-blue-100 p-4 rounded-lg">
     <div className="w-[406px]">
@@ -31,23 +55,39 @@ const CommunitySidebar = () => {
 
       <Card className="mb-4">
         <CardHeader>
-          <CardTitle className="text-xl">실시간 투표</CardTitle>
+          <CardTitle className="text-xl">실시간 인기 투표</CardTitle>
         </CardHeader>
         <CardContent>
-          {votingItems.map((item, index) => (
+          {popularVotes.map((item, index) => (
             <div key={index} className="mb-4">
-              <h3 className="text-lg mb-2">{item.stock}</h3>
-              <div className="flex items-center gap-2">
-                <button className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full hover:bg-blue-200">매수</button>
-                <span>{item.buyPercentage}%</span>
-                <Progress value={item.sellPercentage} className="flex-1" />
-                <span>{item.sellPercentage}%</span>
-                <button className="bg-red-100 text-red-800 px-3 py-1 rounded-full hover:bg-red-200">매도</button>
+              <h3 className="text-lg mb-2">{item.stockName}</h3>
+              <div className="flex items-center gap-2 flex-nowrap">
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                  매수
+                </span>
+                <span className="whitespace-nowrap">{item.buyPercentage.toFixed(1)}%</span>
+                
+                <div className="relative flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-500"
+                    style={{ width: `${item.buyPercentage}%` }}
+                  />
+                  <div
+                    className="absolute top-0 right-0 h-full bg-red-500 transition-all duration-500"
+                    style={{ width: `${item.sellPercentage}%` }}
+                  />
+                </div>
+
+                <span className="whitespace-nowrap">{item.sellPercentage.toFixed(1)}%</span>
+                <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full">
+                  매도
+                </span>
               </div>
             </div>
           ))}
         </CardContent>
       </Card>
+
 
       <Card>
         <CardHeader>
