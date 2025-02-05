@@ -108,8 +108,8 @@ const PortfolioPage = () => {
     };
 
     return (
-        <div className="container mx-auto px-4 py-8 w-1/2  ">
-            <div className="frame-427318266 bg-white rounded-lg shadow-lg p-6 border border-gray-200">
+        <div className="container mx-auto px-4 py-8 w-1/2 h-[78vh] flex flex-col">
+            <div className="frame-427318266 bg-white rounded-lg shadow-lg p-6 border border-gray-200 flex-grow">
                 <div className="frame-427318265 space-y-6 ">
                     {/* 상단 아이콘 영역 */}
                     <div className="frame-427318254 flex justify-between items-center">
