@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Bell, Search } from "lucide-react";
 import { BiBell } from 'react-icons/bi'
 import { useAuth } from '@/contexts/AuthContext';
+import HeaderSearch from './HeaderSearch';
+
 import {
   NavigationMenu,
   NavigationMenuList,
