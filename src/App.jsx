@@ -11,6 +11,7 @@ import CreateArticle from './pages/community/articles/CreateArticle';
 import UpdateArticle from './pages/community/articles/UpdateArticle';
 import CommunityList from './pages/community/articles/Articles';
 import MyPage from './pages/mypage/MyPage';
+import TotalPortfolioDetail from './pages/portfolio/portfolio/totalPortfolio/totalPortfolioDetail';
 
 function App() {
     return (
@@ -19,6 +20,7 @@ function App() {
                 <Route path="/" element={<MainPage />} />
                 <Route path="/portfolio" element={<PortfolioPage />} />
                 <Route path="/portfolio/:portfolioId" element={<PortfolioDetailPage />} />
+                <Route path="/portfolio/total" element={<TotalPortfolioDetail />} />
                 <Route path="/community" element={<div>커뮤니티 페이지</div>} />
                 <Route path="/stocks" element={<StockMainPage />} />
                 <Route path="/stocks/:stockCode" element={<StockDetailPage />} />
@@ -26,7 +28,8 @@ function App() {
                 <Route path="/community/articles" element={<CommunityList />} />
                 <Route path="/community/editor" element={<CreateArticle />} />
                 <Route path="/community/article/:id/editor" element={<UpdateArticle />} />
-                <Route path="/mypage" element={<MyPage/>} />
+                <Route path="/mypage" element={<MyPage />} />
+
             </Route>
             <Route path="/login" element={<Login />} />
         </Routes>
