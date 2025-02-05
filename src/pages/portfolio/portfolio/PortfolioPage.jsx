@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from '@/contexts/AuthContext'; //useAuth 훅 가져오기
 import axios from 'axios';
+// HistoryModal import 추가
+import HistoryModal from './HistoryModal';
 
 const PortfolioPage = () => {
     const navigate = useNavigate();
@@ -21,6 +23,7 @@ const PortfolioPage = () => {
         name: '',
         description: ''
     });
+    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
     useEffect(() => {
         if (accessToken) {
@@ -83,9 +86,9 @@ const PortfolioPage = () => {
     };
 
     return (
-        <div className="container mx-auto px-4 py-8 w-1/2">
-            <div className="frame-427318266 bg-white rounded-lg shadow-lg p-6">
-                <div className="frame-427318265 space-y-6">
+        <div className="container mx-auto px-4 py-8 w-1/2  ">
+            <div className="frame-427318266 bg-white rounded-lg shadow-lg p-6 border border-gray-200">
+                <div className="frame-427318265 space-y-6 ">
                     {/* 상단 아이콘 영역 */}
                     <div className="frame-427318254 flex justify-between items-center">
                         <div className="frame-427318257">
@@ -133,16 +136,21 @@ const PortfolioPage = () => {
 
                     {/* 매매일지 영역 */}
                     <div className="frame-427318256">
-                        <div className="frame-427318263 flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                            <div className="frame-427318262">
-                                <div className="text-lg font-medium">매매일지</div>
+                        <button
+                            onClick={() => setIsHistoryModalOpen(true)}
+                            className="w-full"
+                        >
+                            <div className="frame-427318263 flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div className="frame-427318262">
+                                    <div className="text-lg font-medium">매매일지</div>
+                                </div>
+                                <img
+                                    className="weui-arrow-filled2 w-5 h-5"
+                                    src={arrowIcon}
+                                    alt="arrow"
+                                />
                             </div>
-                            <img
-                                className="weui-arrow-filled2 w-5 h-5"
-                                src={arrowIcon}
-                                alt="arrow"
-                            />
-                        </div>
+                        </button>
                     </div>
 
                     {/* 포트폴리오 목록 */}
@@ -206,6 +214,14 @@ const PortfolioPage = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* 매매일지 모달 */}
+            {isHistoryModalOpen && (
+                <HistoryModal
+                    onClose={() => setIsHistoryModalOpen(false)}
+                    accessToken={accessToken}
+                />
             )}
         </div>
     );
