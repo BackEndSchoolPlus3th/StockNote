@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import CommunitySidebar from "@/components/sidebar/CommunitySidebar";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Heart } from "lucide-react"; // Heart 아이콘 import 추가
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -14,6 +14,7 @@ const Community = () => {
   const { id } = useParams();
   const [post, setPost] = useState(null);
   const navigate = useNavigate();
+  const [isLiked, setIsLiked] = useState(false);
 
   const fetchArticle = async () => {
     try {
@@ -27,9 +28,50 @@ const Community = () => {
     }
   };
 
+  const checkLikeStatus = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${id}/likes/check`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      );
+      setIsLiked(response.data.data);
+    } catch (error) {
+      console.error('좋아요 상태 확인 실패:', error);
+    }
+  };
+
+  const toggleLike = async () => {
+    try {
+      const endpoint = isLiked ? 'unlike' : 'like';
+      await axios.post(
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${id}/${endpoint}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      );
+      fetchArticle(); // 게시글 정보 새로고침
+      setIsLiked(!isLiked); // 좋아요 상태 토글
+    } catch (error) {
+      console.error('좋아요 토글 실패:', error);
+    }
+  };
+
   useEffect(() => {
     fetchArticle();
   }, [id]);
+
+  useEffect(() => {
+    if (post) {
+      checkLikeStatus();
+    }
+  }, [post]);
 
   const {  user } = useAuth();
   const [newComment, setNewComment] = useState('');
@@ -151,12 +193,31 @@ const Community = () => {
               </CardHeader>
               <CardContent className="px-4">
                 <p className="text-xl leading-relaxed mb-8">{post.body}</p>
-                <div className="flex gap-2">
-                  {post.hashtags?.map((tag, index) => (
-                    <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                      #{tag}
-                    </span>
-                  ))}
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-2">
+                    {post.hashtags?.map((tag, index) => (
+                      <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-1 hover:bg-transparent"
+                      onClick={toggleLike}
+                    >
+                      <Heart 
+                        className={`h-6 w-6 transition-colors ${
+                          isLiked ? 'fill-red-500 text-red-500' : 'text-gray-400 hover:text-red-500'
+                        }`}
+                      />
+                      <span className="text-sm font-medium text-gray-500">
+                        {post.likeCount || 0}
+                      </span>
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
               {post.authorId === user?.id && (

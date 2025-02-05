@@ -22,8 +22,8 @@ import axios from 'axios';
 
 const navigationItems = [
   { label: "포트폴리오", href: "/portfolio" },
-  { label: "커뮤니티", href: "/community/articles" },
-  { label: "종목 정보", href: "/stocks" },
+  { label: "관심종목", href: "/stocks" },
+  { label: "커뮤니티", href: "/community/articles" }
 ];
 
 export default function Frame() {
@@ -124,11 +124,11 @@ export default function Frame() {
         </Link>
 
         <NavigationMenu className="ml-8">
-          <NavigationMenuList className="flex gap-8">  {/* 여기에 gap 추가 */}
+          <NavigationMenuList className="flex gap-8"> 
             {navigationItems.map((item) => (
               <NavigationMenuItem key={item.label}>
                 <Link
-                  to={item.href}  // href를 to로 변경
+                  to={item.href}
                   className="px-[5px] py-2.5 text-black hover:bg-gray-100 rounded-[5px] font-h4 text-[16px]"
                 >
                   {item.label}
@@ -138,22 +138,13 @@ export default function Frame() {
           </NavigationMenuList>
         </NavigationMenu>
 
-
-        {/* Search Bar */}
-        <div className="relative flex-1 max-w-[430px] mx-4">
-          <div className="relative">
-            <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 w-[25px] h-[25px] text-gray-400" />
-            <Input
-              className="h-[38px] pl-14 rounded-[20px] border-black shadow-[0px_4px_4px_#00000040]"
-              placeholder="주식 종목 검색"
-            />
-          </div>
-        </div>
+        <HeaderSearch />
 
         {/* User Section - Conditional Rendering */}
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
             <>
+
               <DropdownMenu>
                 <DropdownMenuTrigger className="focus:outline-none">
                   <div className="flex items-center gap-2 hover:opacity-80">
@@ -173,6 +164,7 @@ export default function Frame() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+
             </>
           ) : (
             // 여기가 실행되어야 로그인 버튼이 보임

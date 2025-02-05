@@ -1,18 +1,34 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Star } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Client } from "@stomp/stompjs";
 import SockJS from 'sockjs-client';
-import { useNavigate } from "react-router-dom";
+import { Star, Trash2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
 
-const StockList = ({ stocks }) => {
+const StockList = ({ 
+  stocks,
+  onAdd,
+  onDelete,
+  isDeleteMode,
+  setIsDeleteMode 
+}) => {
+  const [selectedStockToDelete, setSelectedStockToDelete] = useState(null);
+  const [favoritedStocks, setFavoritedStocks] = useState({});
   const stompClient = useRef(null);
-  const subscriptions = useRef({}); // 중복 구독 방지
+  const subscriptions = useRef({});
   const navigate = useNavigate();
   
-  // State to track favorited stocks
-  const [favoritedStocks, setFavoritedStocks] = useState({});
-
   // WebSocket 연결 및 구독 설정
   const connectWebSocket = () => {
     if (stompClient.current?.connected) {
@@ -92,6 +108,20 @@ const StockList = ({ stocks }) => {
     }));
   };
 
+  const handleDeleteClick = (stockCode) => {
+    setSelectedStockToDelete(stockCode);
+  };
+
+  const confirmDelete = () => {
+    if (selectedStockToDelete) {
+      onDelete(selectedStockToDelete);
+      setSelectedStockToDelete(null);
+      if (stocks.length === 1) {
+        setIsDeleteMode(false);
+      }
+    }
+  };
+
   return (
     <div className="flex justify-center w-full">
       <div className="w-[805px] bg-[#b9dafc1a] rounded-[20px] border p-4 space-y-6">
@@ -100,7 +130,7 @@ const StockList = ({ stocks }) => {
             <Card 
               key={stock.code} 
               className="border border-variable-collection-gray shadow-[4px_4px_4px_#00000040]"
-              onClick={() => navigate(`/stocks/${stock.code}`)}
+              onClick={() => !isDeleteMode && navigate(`/stocks/${stock.code}`)}
             >
               <CardContent className="p-5">
                 <div className="flex justify-between items-start">
@@ -124,21 +154,52 @@ const StockList = ({ stocks }) => {
                       </span>
                     </div>
                   </div>
-                  <button 
-                    className="p-2"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent card navigation
-                      toggleFavorite(stock.code);
-                    }}
-                  >
-                    <Star 
-                      className={`w-[22px] h-[21px] ${
-                        favoritedStocks[stock.code] 
-                          ? "text-yellow-500" 
-                          : "text-gray-400"
-                      }`} 
-                    />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {!isDeleteMode && (
+                      <button 
+                        className="p-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(stock.code);
+                        }}
+                      >
+                        <Star 
+                          className={`w-[22px] h-[21px] ${
+                            favoritedStocks[stock.code] 
+                              ? "text-yellow-500" 
+                              : "text-gray-400"
+                          }`} 
+                        />
+                      </button>
+                    )}
+                    {isDeleteMode && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <button
+                            className="p-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteClick(stock.code);
+                            }}
+                          >
+                            <Trash2 className="w-[22px] h-[21px] text-red-500" />
+                          </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>종목 삭제</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              정말로 이 종목을 삭제하시겠습니까?
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>취소</AlertDialogCancel>
+                            <AlertDialogAction onClick={confirmDelete}>삭제</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -148,5 +209,4 @@ const StockList = ({ stocks }) => {
     </div>
   );
 };
-
 export default StockList;

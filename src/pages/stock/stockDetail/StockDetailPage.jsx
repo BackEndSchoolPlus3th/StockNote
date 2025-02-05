@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import StockChart from '@/components/StockChart';
+import StockChart from '@/pages/stock/stockDetail/StockChart';
 
 const StockDetailPage = () => {
   const [stockData, setStockData] = useState(null);
@@ -11,33 +11,53 @@ const StockDetailPage = () => {
   const [chartData, setChartData] = useState(null);
   const [periodType, setPeriodType] = useState('TIME');
   const [voteMessage, setVoteMessage] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { stockCode } = useParams();
 
   useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    setIsLoggedIn(!!token);
+
     const fetchStockData = async () => {
       try {
-        const priceRes = await axios.get(`/api/v1/stocks/price?stockCode=${stockCode}`);
+        // 비로그인 상태에서도 호출 가능한 API 요청
+        const priceRes = await axios.get(`/api/v1/stockApis/price?stockCode=${stockCode}`);
         setStockData(priceRes.data);
 
-        const voteRes = await axios.get(`/api/v1/stocks/${stockCode}/vote-statistics`);
-        setVoteStats(voteRes.data);
+        const voteRes = await axios.get(`/api/v1/votes/${stockCode}/vote-statistics`);
+        console.log('🔄 최신 투표 데이터 (새로고침 후):', voteRes.data);
+        setVoteStats(voteRes.data.data);
 
         const now = new Date();
         const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
 
-        const chartRes = await axios.get('/api/v1/stocks/chart', {
-          params: {
-            stockCode,
-            periodType: 'DAILY',
-            startDate: monthAgo.toISOString().split('T')[0],
-            endDate: new Date().toISOString().split('T')[0]
-          }
-        });
+        // 토큰 선택적 사용
+        const chartOptions = token 
+          ? { 
+              headers: { 'Authorization': `Bearer ${token}` },
+              params: {
+                stockCode,
+                periodType: 'DAILY',
+                startDate: monthAgo.toISOString().split('T')[0],
+                endDate: new Date().toISOString().split('T')[0]
+              }
+            }
+          : {
+              params: {
+                stockCode,
+                periodType: 'DAILY',
+                startDate: monthAgo.toISOString().split('T')[0],
+                endDate: new Date().toISOString().split('T')[0]
+              }
+            };
+
+        const chartRes = await axios.get('/api/v1/stockApis/chart', chartOptions);
         setChartData(chartRes.data);
-        // 차트 데이터 로드
+
+        // 차트 데이터 로드 로직 (기존과 동일)
         if (periodType === 'TIME') {
-          const timeRes = await axios.get(`/api/v1/stockApis/time-prices?stockCode=${stockCode}`, { headers });
-          setChartData(timeRes.data); // API 응답 그대로 설정
+          const timeRes = await axios.get(`/api/v1/stockApis/time-prices?stockCode=${stockCode}`);
+          setChartData(timeRes.data);
         } else {
           const now = new Date();
           const endDate = now.toISOString().split('T')[0];
@@ -50,16 +70,26 @@ const StockDetailPage = () => {
             case 'YEARLY': startDate.setFullYear(now.getFullYear() - 5); break;
           }
 
-          const chartRes = await axios.get('/api/v1/stockApis/chart', {
-            headers,
-            params: {
-              stockCode,
-              periodType,
-              startDate: startDate.toISOString().split('T')[0],
-              endDate
-            }
-          });
+          const chartOptions = token
+            ? {
+                headers: { 'Authorization': `Bearer ${token}` },
+                params: {
+                  stockCode,
+                  periodType,
+                  startDate: startDate.toISOString().split('T')[0],
+                  endDate
+                }
+              }
+            : {
+                params: {
+                  stockCode,
+                  periodType,
+                  startDate: startDate.toISOString().split('T')[0],
+                  endDate
+                }
+              };
 
+          const chartRes = await axios.get('/api/v1/stockApis/chart', chartOptions);
           setChartData(chartRes.data);
         }
       } catch (error) {
@@ -71,11 +101,17 @@ const StockDetailPage = () => {
   }, [stockCode, periodType]);
 
   const handleVote = async (voteType) => {
+    if (!isLoggedIn) {
+      setVoteMessage('로그인이 필요한 기능입니다.');
+      setTimeout(() => setVoteMessage(''), 2000);
+      return;
+    }
+
     try {
       const token = localStorage.getItem('accessToken');
 
       const response = await axios.post(
-        `/api/v1/stocks/${stockCode}/vote`,
+        `/api/v1/votes/${stockCode}`,
         {
           buy: voteType === 'BUY',
           sell: voteType === 'SELL'
@@ -94,14 +130,18 @@ const StockDetailPage = () => {
 
         // 투표 통계 갱신
         const voteRes = await axios.get(
-          `/api/v1/stocks/${stockCode}/vote-statistics`,
+          `/api/v1/votes/${stockCode}/vote-statistics`,
           {
             headers: {
               'Authorization': `Bearer ${token}`
             }
           }
         );
-        setVoteStats(voteRes.data);
+        console.log('🔄 최신 투표 데이터:', voteRes.data);
+        localStorage.setItem(`voteStats_${stockCode}`, JSON.stringify(voteRes.data.data));
+        setVoteStats(voteRes.data.data);
+        console.log('🔄 voteStats 변경됨:', voteStats);
+        
       }
     } catch (error) {
       if (error.response?.status === 401) {
@@ -112,6 +152,13 @@ const StockDetailPage = () => {
       setTimeout(() => setVoteMessage(''), 2000);
     }
   };
+  useEffect(() => {
+    const savedVoteStats = localStorage.getItem(`voteStats_${stockCode}`);
+    if (savedVoteStats) {
+      console.log('🔄 로컬 스토리지에서 투표 데이터 복원:', JSON.parse(savedVoteStats));
+      setVoteStats(JSON.parse(savedVoteStats));
+    }
+  }, [stockCode]);
 
   // 로딩 상태 표시
   if (!stockData || !voteStats || !chartData) {
@@ -148,7 +195,7 @@ const StockDetailPage = () => {
               className="hover:bg-blue-50"
               onClick={() => {/* Add to portfolio logic */}}
             >
-              관심종목
+              +
             </Button>
           </div>
 
@@ -208,21 +255,26 @@ const StockDetailPage = () => {
               매도
             </Button>
           </div>
-
+          {!isLoggedIn && (
+            <div className="text-center text-gray-600 mt-2">
+              투표 기능은 로그인 후 사용할 수 있습니다.
+            </div>
+          )}
           <div className="relative h-8 bg-gray-200 rounded-full overflow-hidden">
             <div
               className="absolute h-full bg-blue-500"
-              style={{ width: `${buyPercentage}%` }}
+              style={{ width: `${voteStats?.buyPercentage || 0}%` }}
             />
             <div
               className="absolute h-full bg-red-500 right-0"
-              style={{ width: `${sellPercentage}%` }}
+              style={{ width: `${voteStats?.sellPercentage || 0}%` }}
             />
           </div>
           <div className="flex justify-between mt-2">
             <span className="text-blue-500">{buyPercentage.toFixed(1)}%</span>
             <span className="text-red-500">{sellPercentage.toFixed(1)}%</span>
           </div>
+          
         </CardContent>
       </Card>
     </div>
