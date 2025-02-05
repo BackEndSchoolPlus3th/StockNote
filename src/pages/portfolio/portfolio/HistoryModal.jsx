@@ -13,29 +13,34 @@ const HistoryModal = ({ onClose, accessToken }) => {
         }
     };
 
-    useEffect(() => {
-        const fetchTransactions = async () => {
-            setIsLoading(true);
-            try {
-                const response = await axios.get(
-                    `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/allNote`,
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`
-                        }
+    const fetchTransactions = async () => {
+        setIsLoading(true);
+        try {
+            const response = await axios.get(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/allNote`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
                     }
-                );
-
-                if (response.data && response.data.data) {
-                    setTransactions(response.data.data);
                 }
-            } catch (error) {
-                console.error('매매일지 조회 실패:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+            );
 
+            if (response.data && response.data.data) {
+                setTransactions(response.data.data);
+            }
+        } catch (error) {
+            console.error('매매일지 조회 실패:', error);
+            if (error.response) {
+                console.error('에러 응답:', error.response.data);
+                console.error('상태 코드:', error.response.status);
+            }
+            setTransactions([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchTransactions();
     }, [accessToken]);
 
