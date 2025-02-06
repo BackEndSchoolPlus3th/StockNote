@@ -126,8 +126,12 @@ export default function Frame() {
         {/* Logo */}
 
         <Link to="/" className="flex items-center cursor-pointer mr-8">
-          <h1 className="text-[32px] font-h1 font-extrabold">Stock Note</h1>
-        </Link>
+        <img 
+          src="/src/assets/logo.png" 
+          alt="StockNote Logo" 
+          className="h-14"
+        />
+      </Link>
 
         <button 
           className="md:hidden focus:outline-none"
