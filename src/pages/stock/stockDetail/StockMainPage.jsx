@@ -73,15 +73,16 @@ const StockMainPage = () => {
   };
 
   return (
-    <div className="w-full p-">
-      <div className="flex flex-col min-h-screen items-center">
+    <div className="w-full p-2">
+    <div className="flex justify-center w-full">
+      <div className="flex flex-col min-h-screen">
         {location.pathname === "/stocks" && (
           <>
-            <div className="w-full sm:w-[805px] flex justify-start sm:justify-start mb-2">
+            <div className="w-full sm:w-[500px] flex justify-start sm:justify-start mb-2">
               <h2 className="text-3xl font-bold">관심 종목</h2>
             </div>
           
-            <div className="w-full sm:w-[805px] flex justify-end sm:justify-end mb-2">
+            <div className="w-full sm:w-[500px] flex justify-end sm:justify-end mb-2">
             {stocks.length > 0 ? (
               <div className="space-x-1">
                 <Button 
@@ -107,7 +108,7 @@ const StockMainPage = () => {
               </Button>
             }</div>
 
-            <div className="flex justify-center w-full">
+
                 <StockList 
                   stocks={stocks} 
                   onAdd={() => setIsSearchOpen(true)}
@@ -115,13 +116,12 @@ const StockMainPage = () => {
                   isDeleteMode={isDeleteMode}
                   setIsDeleteMode={setIsDeleteMode}
                 />
-            </div>
+
             {/* ✅ 종목이 없을 때 "종목 추가하기" 버튼 표시 */}
           </>
         )}
+          </div>
       </div>
-
-      
       <StockSearch
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
