@@ -3,11 +3,10 @@ import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const TradeVolumePage = () => {
+const TradeVolumePage = ({ onUpdateDate }) => {
     const [volumeData, setVolumeData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [lastUpdateDate, setLastUpdateDate] = useState(null);
     const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -27,7 +26,7 @@ const TradeVolumePage = () => {
 
             if (response.data?.output?.length > 0) {
                 setVolumeData(response.data.output);
-                setLastUpdateDate(targetDate);
+                onUpdateDate(targetDate); 
                 return true;
             }
             return false;
@@ -68,6 +67,7 @@ const TradeVolumePage = () => {
                 }
             }
 
+
             if (!success) {
                 setError('최근 5일간의 거래 데이터를 찾을 수 없습니다.');
             }
@@ -76,7 +76,8 @@ const TradeVolumePage = () => {
         };
 
         loadData();
-    }, []);
+    }, [onUpdateDate]);
+
 
     const handleNextGroup = () => {
         setCurrentGroupIndex(prev => prev + 1);
@@ -116,96 +117,97 @@ const TradeVolumePage = () => {
     const currentItems = volumeData.slice(startIndex, endIndex);
 
     return (
-        <div className="space-y-4">
-            {lastUpdateDate && (
-                <div className="px-4 py-2 bg-gray-100 text-sm text-gray-600 rounded-lg">
-                    마지막 업데이트: {lastUpdateDate.toLocaleDateString('ko-KR')}
-                </div>
-            )}
-            
-            <div className="border rounded-lg overflow-hidden">
-                <div className="bg-gray-50 px-4 py-3 flex justify-between items-center">
-                    <h3 className="font-medium">
-                        {startIndex + 1}-{Math.min(endIndex, volumeData.length)} 위
-                    </h3>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="flex items-center gap-2"
-                    >
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        {isExpanded ? '접기' : '더보기'}
-                    </Button>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr>
-                                <th className="px-4 h-12 bg-blue-500 text-white border font-medium text-center whitespace-nowrap">순위</th>
-                                <th className="px-4 h-12 bg-blue-500 text-white border font-medium text-center whitespace-nowrap">종목명</th>
-                                <th className="px-4 h-12 bg-blue-500 text-white border font-medium text-center whitespace-nowrap">현재가</th>
-                                <th className="px-4 h-12 bg-blue-500 text-white border font-medium text-center whitespace-nowrap">전일대비</th>
-                                <th className="px-4 h-12 bg-blue-500 text-white border font-medium text-center whitespace-nowrap">등락률</th>
-                                <th className="px-4 h-12 bg-blue-500 text-white border font-medium text-center whitespace-nowrap">거래량</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {currentItems.map((item) => (
-                                <tr key={item.data_rank} className="hover:bg-gray-50">
-                                    <td className="px-4 py-3 border text-center">{item.data_rank}</td>
-                                    <td className="px-4 py-3 border">{item.hts_kor_isnm}</td>
-                                    <td className="px-4 py-3 border text-right">
-                                        {Number(item.stck_prpr).toLocaleString()}
-                                    </td>
-                                    <td className={`px-4 py-3 border text-right ${
-                                        item.prdyVrssSign === '2' ? 'text-red-500' : 
-                                        item.prdyVrssSign === '5' ? 'text-blue-500' : ''
-                                    }`}>
-                                        {item.prdyVrssSign === '2' ? '+' : 
-                                         item.prdyVrssSign === '5' ? '-' : ''}
-                                        {Number(item.prdy_vrss).toLocaleString()}
-                                    </td>
-                                    <td className={`px-4 py-3 border text-right ${
-                                        item.prdyVrssSign === '2' ? 'text-red-500' : 
-                                        item.prdyVrssSign === '5' ? 'text-blue-500' : ''
-                                    }`}>
-                                        {item.prdyVrssSign === '2' ? '+' : 
-                                         item.prdyVrssSign === '5' ? '-' : ''}
-                                        {item.prdy_ctrt}%
-                                    </td>
-                                    <td className="px-4 py-3 border text-right">
-                                        {Number(item.acml_vol).toLocaleString()}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div className="flex justify-center items-center gap-2">
-                <Button
-                    variant="outline"
-                    onClick={handlePrevGroup}
-                    disabled={currentGroupIndex === 0}
-                >
-                    <ChevronLeft className="w-4 h-4" />
-                    이전
-                </Button>
-                <span className="mx-4">
-                    {currentGroupIndex + 1} / {totalGroups}
-                </span>
-                <Button
-                    variant="outline"
-                    onClick={handleNextGroup}
-                    disabled={currentGroupIndex >= totalGroups - 1}
-                >
-                    다음
-                    <ChevronRight className="w-4 h-4" />
-                </Button>
-            </div>
+// TradeVolumePage.jsx의 테이블 부분만 수정
+<div className="space-y-6 pb-2">
+    <div className="rounded-2xl overflow-hidden bg-white">
+        <div className="px-4 py-3 flex justify-between items-center">
+            <h3 className="font-medium text-gray-800">
+                실시간 거래량 {startIndex + 1}-{Math.min(endIndex, volumeData.length)}위
+            </h3>
+            <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
+            >
+                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                {isExpanded ? '접기' : '더보기'}
+            </Button>
         </div>
+        <div className="overflow-x-auto">
+            <table className="w-full">
+                <thead>
+                    <tr className="text-gray-500 text-sm bg-gray-50">
+                    <th className="w-16 px-4 py-3 font-medium text-left whitespace-nowrap">순위</th>
+                    <th className="w-1/4 px-4 py-3 font-medium text-left whitespace-nowrap">종목명</th>
+                    <th className="w-32 px-4 py-3 font-medium text-right whitespace-nowrap">현재가</th>
+                    <th className="w-32 px-4 py-3 font-medium text-right whitespace-nowrap">전일대비</th>
+                    <th className="w-28 px-4 py-3 font-medium text-right whitespace-nowrap">등락률</th>
+                    <th className="w-32 px-4 py-3 font-medium text-right whitespace-nowrap">거래량</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {currentItems.map((item) => (
+                        <tr key={item.data_rank} className="hover:bg-gray-50 border-t border-gray-100">
+                            <td className="w-16 px-4 py-3 text-blue-500 font-medium">
+                                {item.data_rank}
+                            </td>
+                            <td className="w-1/4 px-4 py-3">
+                                <div className="font-medium text-gray-900">{item.hts_kor_isnm}</div>
+                            </td>
+                            <td className="w-32 px-4 py-3 text-right font-medium text-gray-900">
+                                {Number(item.stck_prpr).toLocaleString()}원
+                            </td>
+                            <td className={`w-32 px-4 py-3 text-right font-medium ${
+                                item.prdyVrssSign === '2' ? 'text-red-500' : 
+                                item.prdyVrssSign === '5' ? 'text-blue-500' : 'text-gray-900'
+                            }`}>
+                                {item.prdyVrssSign === '2' ? '+' : 
+                                item.prdyVrssSign === '5' ? '-' : ''}
+                                {Number(item.prdy_vrss).toLocaleString()}원
+                            </td>
+                            <td className={`w-28 px-4 py-3 text-right font-medium ${
+                                item.prdyVrssSign === '2' ? 'text-red-500' : 
+                                item.prdyVrssSign === '5' ? 'text-blue-500' : 'text-gray-900'
+                            }`}>
+                                {item.prdyVrssSign === '2' ? '+' : 
+                                item.prdyVrssSign === '5' ? '-' : ''}
+                                {item.prdy_ctrt}%
+                            </td>
+                            <td className="w-32 px-4 py-3 text-right text-gray-600">
+                                {Number(item.acml_vol).toLocaleString()}
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div className="flex justify-center items-center gap-3 mt-8">
+        <Button
+            variant="outline"
+            onClick={handlePrevGroup}
+            disabled={currentGroupIndex === 0}
+            className="text-gray-600"
+        >
+            <ChevronLeft className="w-4 h-4" />
+            이전
+        </Button>
+        <span className="text-gray-600">
+            {currentGroupIndex + 1} / {totalGroups}
+        </span>
+        <Button
+            variant="outline"
+            onClick={handleNextGroup}
+            disabled={currentGroupIndex >= totalGroups - 1}
+            className="text-gray-600"
+        >
+            다음
+            <ChevronRight className="w-4 h-4" />
+        </Button>
+    </div>
+</div>
     );
 };
 
