@@ -7,6 +7,7 @@ import { Bell, Search } from "lucide-react";
 import { BiBell } from 'react-icons/bi'
 import { useAuth } from '@/contexts/AuthContext';
 import HeaderSearch from './HeaderSearch';
+import { FiMenu } from 'react-icons/fi';
 
 import {
   NavigationMenu,
@@ -40,6 +41,7 @@ export default function Frame() {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [eventSource, setEventSource] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -115,38 +117,45 @@ export default function Frame() {
   };
 
   const unreadNotifications = notifications.filter(note => !note.isRead);
-
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
   return (
-    <header className="w-full h-[131px] bg-white">
-      <div className="max-w-[1512px] mx-auto px-4 h-full flex items-center justify-between">
+    <header className="w-full h-[110px] bg-white">
+    <div className="max-w-[1512px] mx-auto px-6 h-full flex items-center">
         {/* Logo */}
 
-        <Link to="/" className="flex items-center cursor-pointer">
+        <Link to="/" className="flex items-center cursor-pointer mr-8">
           <h1 className="text-[32px] font-h1 font-extrabold">Stock Note</h1>
         </Link>
 
-        <NavigationMenu className="ml-8">
-          <NavigationMenuList className="flex gap-8"> 
-            {navigationItems.map((item) => (
-              <NavigationMenuItem key={item.label}>
-                <Link
-                  to={item.href}
-                  className="px-[5px] py-2.5 text-black hover:bg-gray-100 rounded-[5px] font-h4 text-[16px]"
-                >
-                  {item.label}
-                </Link>
-              </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
+        <button 
+          className="md:hidden focus:outline-none"
+          onClick={toggleMobileMenu}
+        >
+          <FiMenu size={24} />
+        </button>
 
-        <HeaderSearch />
-
-        {/* User Section - Conditional Rendering */}
-        <div className="flex items-center gap-4">
+        <NavigationMenu className="ml-8 hidden md:block ">
+      <NavigationMenuList className="flex gap-8"> 
+        {navigationItems.map((item) => (
+          <NavigationMenuItem key={item.label}>
+            <Link
+              to={item.href}
+              className="px-[5px] py-2.5 text-black hover:bg-gray-100 rounded-[5px] font-h4 text-[16px]"
+            >
+              {item.label}
+            </Link>
+          </NavigationMenuItem>
+        ))}
+        <HeaderSearch className="hidden md:block flex-1 max-w-[430px]"  />
+        
+      </NavigationMenuList>
+    </NavigationMenu>
+    <div className="ml-auto"></div>
+        <div className="flex items-center gap-6">
           {isAuthenticated ? (
             <>
-
               <DropdownMenu>
                 <DropdownMenuTrigger className="focus:outline-none">
                   <div className="flex items-center gap-2 hover:opacity-80">
@@ -154,7 +163,7 @@ export default function Frame() {
                       <AvatarImage src={user?.profile || "https://github.com/shadcn.png"} alt="User avatar" />
                       <AvatarFallback>{user?.name?.[0] || 'UN'}</AvatarFallback>
                     </Avatar>
-                    <span className="font-h4 text-[16px]">{user?.name || "사용자"}</span>
+                  <span className="font-h4 text-[16px] hidden md:inline gap-8">{user?.name || "사용자"}</span>
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-48">
@@ -220,6 +229,31 @@ export default function Frame() {
           </div>
         )}
       </div>
-    </header>
+      {isMobileMenuOpen && (
+    <div className="md:hidden">
+    {isMobileMenuOpen && (
+      <div className="fixed top-20 left-0 right-0 z-40 bg-white/95 shadow-lg max-h-[calc(100vh-5rem)] rounded-b-xl overflow-y-auto">
+      <HeaderSearch className="xp-4 border-t border-gray-100" />
+        <NavigationMenu>
+          <NavigationMenuList className="flex flex-col gap-2 p-4"> 
+            {navigationItems.map((item) => (
+              <NavigationMenuItem key={item.label} className="w-full">
+                <Link
+                  to={item.href}
+                  className="block w-full px-4 py-3 text-black hover:bg-gray-100 rounded-[8px] font-medium text-[16px] transition-colors duration-200 text-left "
+                  onClick={toggleMobileMenu}
+                >
+                  {item.label}
+                </Link>
+              </NavigationMenuItem>
+            ))}
+          </NavigationMenuList>
+        </NavigationMenu>
+
+      </div>
+
+  )}
+    </div>)}
+</header>
   );
 }
