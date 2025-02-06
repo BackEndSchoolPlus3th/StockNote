@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Search, Heart, MessageSquare } from "lucide-react";
+import { Input } from "@/components/ui/input";
+
+
 
 const CommunitySidebar = () => {
   const [popularPosts, setPopularPosts] = useState([]);
@@ -15,7 +18,6 @@ const CommunitySidebar = () => {
     console.log('Clicking post with ID:', postId);
     navigate(`/community/article/${postId}`);
   };
-
 
   const fetchPopularPosts = async () => {
     try {
@@ -38,6 +40,17 @@ const CommunitySidebar = () => {
     buyPercentage: 36.2,
   });
 
+
+const CommunitySidebar = ({ onSearch }) => {
+  const [searchKeyword, setSearchKeyword] = useState('');
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onSearch(searchKeyword);
+    }
+  };
+
   return (
     <div className="bg-blue-100 p-4 rounded-lg">
       <div className="w-[406px]">
@@ -46,6 +59,19 @@ const CommunitySidebar = () => {
             <div className="flex items-center gap-2">
               <Search className="h-5 w-5" />
               <span className="text-gray-500">게시글 검색</span>
+            <div className="relative">
+              <Input
+                type="search"
+                placeholder="게시글 검색"
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="pl-10"
+              />
+              <Search 
+                className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                onClick={() => onSearch(searchKeyword)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -109,6 +135,22 @@ const CommunitySidebar = () => {
                   </div>
                 </div>
                 {index < popularPosts.length - 1 && <Separator className="my-2" />}
+              <div key={index} className="py-0">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg">{post.title}</h3>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-9 w-9">
+                      <img src="" alt="User" />
+                    </Avatar>
+                    <span>{post.author}</span>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-500 mt-2">
+                  {post.date}
+                </div>
+                {index < popularPosts.length - 1 && (
+                  <Separator className="mt-4" />
+                )}
               </div>
             ))}
           </CardContent>

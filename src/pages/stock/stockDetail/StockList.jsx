@@ -25,6 +25,7 @@ const StockList = ({
 }) => {
   const [selectedStockToDelete, setSelectedStockToDelete] = useState(null);
   const [favoritedStocks, setFavoritedStocks] = useState({});
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const stompClient = useRef(null);
   const subscriptions = useRef({});
   const navigate = useNavigate();
@@ -121,92 +122,105 @@ const StockList = ({
       }
     }
   };
-
+  const handleAddStock = async () => {
+    await fetchStocks(); 
+    setIsSearchOpen(false);
+  };
   return (
     <div className="flex justify-center w-full">
       <div className="w-[805px] bg-[#b9dafc1a] rounded-[20px] border p-4 space-y-6">
-        <div className="space-y-1.5">
-          {stocks.map((stock) => (
-            <Card 
-              key={stock.code} 
-              className="border border-variable-collection-gray shadow-[4px_4px_4px_#00000040]"
-              onClick={() => !isDeleteMode && navigate(`/stocks/${stock.code}`)}
-            >
-              <CardContent className="p-5">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-0.5">
-                      <h3 className="font-h3 text-xl text-black p-2.5">{stock.name}</h3>
-                      <h3 className="font-h4 text-gray-400 p-2.5">{stock.code}</h3>
+        {stocks.length > 0 ? (
+          <div className="space-y-1.5">
+            {stocks.map((stock) => (
+              <Card 
+                key={stock.code} 
+                className="border border-variable-collection-gray shadow-[4px_4px_4px_#00000040]"
+                onClick={() => !isDeleteMode && navigate(`/stocks/${stock.code}`)}
+              >
+                <CardContent className="p-5">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-0.5">
+                        <h3 className="font-h3 text-xl text-black p-2.5">{stock.name}</h3>
+                        <h3 className="font-h4 text-gray-400 p-2.5">{stock.code}</h3>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-h3 text-black p-2.5">
+                          {stock.price ? `${stock.price.toLocaleString()}원` : "-"}
+                        </span>
+                        <span className={`font-h4 p-2.5 ${
+                          stock.change?.startsWith('+') 
+                            ? "text-red-500" 
+                            : stock.change?.startsWith('-') 
+                              ? "text-blue-500" 
+                              : "text-red-500"
+                        }`}>
+                          ({stock.change || "-"})
+                        </span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-h3 text-black p-2.5">
-                        {stock.price ? `${stock.price.toLocaleString()}원` : "-"}
-                      </span>
-                      <span className={`font-h4 p-2.5 ${
-                        stock.change?.startsWith('+') 
-                          ? "text-red-500" 
-                          : stock.change?.startsWith('-') 
-                            ? "text-blue-500" 
-                            : "text-red-500"
-                      }`}>
-                        ({stock.change || "-"})
-                      </span>
+                      {!isDeleteMode && (
+                        <button 
+                          className="p-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(stock.code);
+                          }}
+                        >
+                          <Star 
+                            className={`w-[22px] h-[21px] ${
+                              favoritedStocks[stock.code] 
+                                ? "text-yellow-500" 
+                                : "text-gray-400"
+                            }`} 
+                          />
+                        </button>
+                      )}
+                      {isDeleteMode && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <button
+                              className="p-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(stock.code);
+                              }}
+                            >
+                              <Trash2 className="w-[22px] h-[21px] text-red-500" />
+                            </button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>종목 삭제</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                정말로 이 종목을 삭제하시겠습니까?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>취소</AlertDialogCancel>
+                              <AlertDialogAction onClick={confirmDelete}>삭제</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {!isDeleteMode && (
-                      <button 
-                        className="p-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(stock.code);
-                        }}
-                      >
-                        <Star 
-                          className={`w-[22px] h-[21px] ${
-                            favoritedStocks[stock.code] 
-                              ? "text-yellow-500" 
-                              : "text-gray-400"
-                          }`} 
-                        />
-                      </button>
-                    )}
-                    {isDeleteMode && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <button
-                            className="p-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteClick(stock.code);
-                            }}
-                          >
-                            <Trash2 className="w-[22px] h-[21px] text-red-500" />
-                          </button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>종목 삭제</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              정말로 이 종목을 삭제하시겠습니까?
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>취소</AlertDialogCancel>
-                            <AlertDialogAction onClick={confirmDelete}>삭제</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+            <div className="text-center space-y-4">
+              <p className="text-xl font-semibold">관심 종목이 없습니다</p>
+              <p className="text-sm text-gray-400">관심 종목을 추가해 보세요</p>
+            </div>
+          </div>
+        )}
       </div>
+      
     </div>
   );
-};
+}
 export default StockList;
