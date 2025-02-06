@@ -117,7 +117,7 @@ const TradeVolumePage = ({ onUpdateDate }) => {
     const currentItems = volumeData.slice(startIndex, endIndex);
 
     return (
-// TradeVolumePage.jsx의 테이블 부분만 수정
+
 <div className="space-y-6 pb-2">
     <div className="rounded-2xl overflow-hidden bg-white">
         <div className="px-4 py-3 flex justify-between items-center">
