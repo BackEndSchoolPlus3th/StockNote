@@ -1,22 +1,45 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { Avatar } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Search } from "lucide-react";
+import { Search, Heart, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from 'react';
 
-const popularPosts = Array(4).fill({
-  title: "좀 봐주세요",
-  date: "2025. 01. 18  22:01",
-  author: "주식은 못 말려",
-});
 
-const votingItems = Array(3).fill({
-  stock: "삼성전자",
-  sellPercentage: 63.8,
-  buyPercentage: 36.2,
-});
+
+const CommunitySidebar = () => {
+  const [popularPosts, setPopularPosts] = useState([]);
+  const navigate = useNavigate();
+
+  const handlePostClick = (postId) => {
+    console.log('Clicking post with ID:', postId);
+    navigate(`/community/article/${postId}`);
+  };
+
+  const fetchPopularPosts = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular`
+      );
+      setPopularPosts(response.data.data.content);
+    } catch (error) {
+      console.error('인기 게시글 조회 실패:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPopularPosts();
+  }, []);
+
+  const votingItems = Array(3).fill({
+    stock: "삼성전자",
+    sellPercentage: 63.8,
+    buyPercentage: 36.2,
+  });
+
 
 const CommunitySidebar = ({ onSearch }) => {
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -33,6 +56,9 @@ const CommunitySidebar = ({ onSearch }) => {
       <div className="w-[406px]">
         <Card className="mb-4">
           <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Search className="h-5 w-5" />
+              <span className="text-gray-500">게시글 검색</span>
             <div className="relative">
               <Input
                 type="search"
@@ -76,6 +102,39 @@ const CommunitySidebar = ({ onSearch }) => {
           </CardHeader>
           <CardContent>
             {popularPosts.map((post, index) => (
+              <div
+                key={post.id}
+                className="py-2 cursor-pointer hover:bg-gray-50"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handlePostClick(post.id);
+                }}
+              >
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-lg font-medium line-clamp-1">{post.title}</h3>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6">
+                        <img src={post.profile} alt="User" />
+                      </Avatar>
+                      <span className="text-sm">{post.username}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Heart size={14} />
+                        <span>{post.likeCount}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageSquare size={14} />
+                        <span>{post.commentCount}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {new Date(post.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+                {index < popularPosts.length - 1 && <Separator className="my-2" />}
               <div key={index} className="py-0">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg">{post.title}</h3>
