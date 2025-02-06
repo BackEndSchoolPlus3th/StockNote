@@ -8,10 +8,9 @@ import { Separator } from "@/components/ui/separator";
 import { Search, Heart, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-
-
-const CommunitySidebar = () => {
+const CommunitySidebar = ({ onSearch }) => {
   const [popularPosts, setPopularPosts] = useState([]);
+  const [searchKeyword, setSearchKeyword] = useState('');
   const navigate = useNavigate();
 
   const handlePostClick = (postId) => {
@@ -40,10 +39,6 @@ const CommunitySidebar = () => {
     buyPercentage: 36.2,
   });
 
-
-const CommunitySidebar = ({ onSearch }) => {
-  const [searchKeyword, setSearchKeyword] = useState('');
-
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -59,6 +54,7 @@ const CommunitySidebar = ({ onSearch }) => {
             <div className="flex items-center gap-2">
               <Search className="h-5 w-5" />
               <span className="text-gray-500">게시글 검색</span>
+            </div>
             <div className="relative">
               <Input
                 type="search"
@@ -102,30 +98,22 @@ const CommunitySidebar = ({ onSearch }) => {
           </CardHeader>
           <CardContent>
             {popularPosts.map((post, index) => (
-              <div
-                key={post.id}
-                className="py-2 cursor-pointer hover:bg-gray-50"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handlePostClick(post.id);
-                }}
-              >
-                <div className="flex flex-col gap-2">
-                  <h3 className="text-lg font-medium line-clamp-1">{post.title}</h3>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <img src={post.profile} alt="User" />
-                      </Avatar>
-                      <span className="text-sm">{post.username}</span>
+              <div key={index}>
+                <div className="flex justify-between items-center">
+                  <div className="flex-1">
+                    <div 
+                      className="text-lg cursor-pointer hover:text-blue-600"
+                      onClick={() => handlePostClick(post.id)}
+                    >
+                      {post.title}
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 mt-2">
                       <div className="flex items-center gap-1">
-                        <Heart size={14} />
+                        <Heart className="w-4 h-4" />
                         <span>{post.likeCount}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <MessageSquare size={14} />
+                        <MessageSquare className="w-4 h-4" />
                         <span>{post.commentCount}</span>
                       </div>
                     </div>
@@ -135,22 +123,6 @@ const CommunitySidebar = ({ onSearch }) => {
                   </div>
                 </div>
                 {index < popularPosts.length - 1 && <Separator className="my-2" />}
-              <div key={index} className="py-0">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg">{post.title}</h3>
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-9 w-9">
-                      <img src="" alt="User" />
-                    </Avatar>
-                    <span>{post.author}</span>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-500 mt-2">
-                  {post.date}
-                </div>
-                {index < popularPosts.length - 1 && (
-                  <Separator className="mt-4" />
-                )}
               </div>
             ))}
           </CardContent>
