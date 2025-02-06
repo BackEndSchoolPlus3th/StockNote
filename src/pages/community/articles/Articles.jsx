@@ -10,7 +10,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const CommunityList = () => {
   const categoryMapping = {
-    "전체": "",
+    "전체": "ALL",
     "자유토론": "FREE",
     "투자분석": "TIP",
     "질문": "QNA",
@@ -28,9 +28,7 @@ const CommunityList = () => {
     try {
     
       const mappedCategory = categoryMapping[category];
-      const url = category === "전체" 
-        ? `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts`
-        : `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts?category=${mappedCategory}`;
+      const url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts?category=${mappedCategory}`;
         
       const response = await axios.get(url);
       console.log(url);
