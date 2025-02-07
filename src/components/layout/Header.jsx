@@ -140,22 +140,21 @@ export default function Frame() {
           <FiMenu size={24} />
         </button>
 
-        <NavigationMenu className="ml-8 hidden md:block ">
-      <NavigationMenuList className="flex gap-8"> 
-        {navigationItems.map((item) => (
-          <NavigationMenuItem key={item.label}>
-            <Link
-              to={item.href}
-              className="px-[5px] py-2.5 text-black hover:bg-gray-100 rounded-[5px] font-h4 text-[16px]"
-            >
-              {item.label}
-            </Link>
-          </NavigationMenuItem>
-        ))}
-        <HeaderSearch className="hidden md:block flex-1 max-w-[430px]"  />
-        
-      </NavigationMenuList>
-    </NavigationMenu>
+        <NavigationMenu className="ml-8 hidden md:block">
+          <NavigationMenuList className="flex gap-8"> 
+            {navigationItems.map((item) => (
+              <NavigationMenuItem key={item.label}>
+                <Link
+                  to={item.href}
+                  className="px-[5px] py-2.5 text-black hover:bg-gray-100 rounded-[5px] font-h4 text-[16px]"
+                >
+                  {item.label}
+                </Link>
+              </NavigationMenuItem>
+            ))}
+          </NavigationMenuList>
+        </NavigationMenu>
+        <HeaderSearch className="hidden md:block flex-1 min-w-[300px] max-w-[750px]" />
     <div className="ml-auto"></div>
         <div className="flex items-center gap-6">
           {isAuthenticated ? (
