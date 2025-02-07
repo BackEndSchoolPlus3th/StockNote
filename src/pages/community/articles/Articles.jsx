@@ -7,6 +7,12 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const CommunityList = () => {
   const categoryMapping = {
@@ -23,11 +29,26 @@ const CommunityList = () => {
   const [posts, setPosts] = useState([]);
   const categories = ["전체", "자유토론", "투자분석", "질문", "뉴스분석"];
   const navigate = useNavigate();
+  const [sortType, setSortType] = useState('latest'); // 정렬 타입 상태 추가
 
-  const fetchPosts = async (category) => {
+  const fetchPosts = async (category, sort = sortType) => {
     try {
       const mappedCategory = categoryMapping[category];
-      const url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts?category=${mappedCategory}`;
+      let url;
+      
+      switch(sort) {
+        case 'likes':
+          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular/likes`;
+          break;
+        case 'comments':
+          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular/comments`;
+          break;
+        case 'popular':
+          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular`;
+          break;
+        default: // 'latest'
+          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts?category=${mappedCategory}`;
+      }
       
       const response = await axios.get(url);
       const postsData = response.data.data.content;
@@ -85,9 +106,15 @@ const handleSearch = async (searchKeyword) => {
   }
 };
 
+  // 정렬 타입 변경 핸들러
+  const handleSortChange = (newSortType) => {
+    setSortType(newSortType);
+    fetchPosts(selectedCategory, newSortType);
+  };
+
   useEffect(() => {
     fetchPosts(selectedCategory);
-  }, [selectedCategory, user]); // user 의존성 추가
+  }, [selectedCategory, user, sortType]); // sortType 의존성 추가
 
   const handlePostClick = (postId) => {
     navigate(`/community/article/${postId}`);
@@ -109,28 +136,55 @@ const handleSearch = async (searchKeyword) => {
               <Button 
                 variant="outline" 
                 size="icon" 
-                className="rounded-full  hover:bg-blue-200 text-bg-blue-200 w-12 h-12 p-2"
+                className="rounded-full hover:bg-blue-200 text-bg-blue-200 w-12 h-12 p-2"
                 onClick={() => navigate('/community/editor')}
-                >
+              >
                 <Plus className="h-9 w-9" />
-                </Button>
-            </div>
-            <div className="flex gap-3 mb-8">
-              {categories.map((category, index) => (
-                <button
-                  key={index}
-                  className={`px-4 py-2 rounded-full font-medium ${
-                    selectedCategory === category 
-                      ? "bg-blue-500 text-white" 
-                      : "bg-blue-100 text-blue-800 hover:bg-blue-200"
-                  }`}
-                  onClick={() => handleCategoryChange(category)}
-                >
-                  {category}
-                </button>
-              ))}
+              </Button>
             </div>
             
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex gap-3">
+                {categories.map((category, index) => (
+                  <button
+                    key={index}
+                    className={`px-4 py-2 rounded-full font-medium ${
+                      selectedCategory === category 
+                        ? "bg-blue-500 text-white" 
+                        : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                    }`}
+                    onClick={() => handleCategoryChange(category)}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="rounded-full px-4">
+                    {sortType === 'latest' && '최신순'}
+                    {sortType === 'likes' && '좋아요순'}
+                    {sortType === 'comments' && '댓글순'}
+                    {sortType === 'popular' && '인기순'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleSortChange('latest')}>
+                    최신순
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSortChange('likes')}>
+                    좋아요순
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSortChange('comments')}>
+                    댓글순
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSortChange('popular')}>
+                    인기순
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
             <div className="space-y-4">
               {posts.map((post) => (
                 <Card 
