@@ -1,29 +1,52 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Search, Heart, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useAuth } from '@/contexts/AuthContext';
 
+// eslint-disable-next-line react/prop-types
 const CommunitySidebar = ({ onSearch }) => {
+  const { user } = useAuth();
   const [popularPosts, setPopularPosts] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState('');
   const navigate = useNavigate();
 
   const handlePostClick = (postId) => {
-    console.log('Clicking post with ID:', postId);
     navigate(`/community/article/${postId}`);
   };
 
   const fetchPopularPosts = async () => {
     try {
+      const headers = user ? {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+      } : {};
+
       const response = await axios.get(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular`
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular`,
+        { headers }
       );
-      setPopularPosts(response.data.data.content);
+
+      // 각 게시글의 좋아요 상태 확인
+      const postsWithLikeStatus = await Promise.all(
+        response.data.data.content.map(async (post) => {
+          if (!user) return { ...post, liked: false };
+          try {
+            const likeResponse = await axios.get(
+              `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${post.id}/likes/check`,
+              { headers }
+            );
+            return { ...post, liked: likeResponse.data.data };
+          // eslint-disable-next-line no-unused-vars
+          } catch (error) {
+            return { ...post, liked: false };
+          }
+        })
+      );
+      setPopularPosts(postsWithLikeStatus);
     } catch (error) {
       console.error('인기 게시글 조회 실패:', error);
     }
@@ -31,7 +54,7 @@ const CommunitySidebar = ({ onSearch }) => {
 
   useEffect(() => {
     fetchPopularPosts();
-  }, []);
+  }, [user]); // user 의존성 추가
 
   const [popularVotes, setPopularVotes] = useState([]);
 
@@ -58,6 +81,26 @@ const CommunitySidebar = ({ onSearch }) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       onSearch(searchKeyword);
+    }
+  };
+
+  // 날짜 포맷팅 함수 추가
+  const formatDate = (date) => {
+    const now = new Date();
+    const targetDate = new Date(date);
+    const diffMs = now - targetDate;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffHours < 1) {
+      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+      return `${diffMinutes}분 전`;
+    } else if (diffHours < 24) {
+      return `${diffHours}시간 전`;
+    } else if (diffDays === 1) {
+      return '어제';
+    } else {
+      return `${diffDays}일 전`;
     }
   };
 
@@ -125,34 +168,60 @@ const CommunitySidebar = ({ onSearch }) => {
         <Card>
           <CardHeader>
             <CardTitle className="text-xl pt-2">인기 게시글</CardTitle>
+            <p className="text-sm text-gray-500">
+              {new Date().toLocaleDateString()} 기준
+            </p>
           </CardHeader>
           <CardContent>
             {popularPosts.map((post, index) => (
-              <div key={index}>
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <div 
-                      className="text-lg cursor-pointer hover:text-blue-600"
-                      onClick={() => handlePostClick(post.id)}
-                    >
-                      {post.title}
-                    </div>
-                    <div className="flex items-center gap-4 mt-2">
-                      <div className="flex items-center gap-1">
-                        <Heart className="w-4 h-4" />
-                        <span>{post.likeCount}</span>
+              <div key={index} 
+                className="cursor-pointer" 
+                onClick={() => handlePostClick(post.id)}
+              >
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-start mb-1">
+                    <div className="flex-1">
+                      <div className="text-lg font-medium hover:text-blue-600">
+                        {post.title}
                       </div>
-                      <div className="flex items-center gap-1">
-                        <MessageSquare className="w-4 h-4" />
-                        <span>{post.commentCount}</span>
-                      </div>
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                        {post.body}
+                      </p>
                     </div>
+                    <span className="text-xs text-gray-500 ml-2 shrink-0">
+                      {formatDate(post.createdAt)}
+                    </span>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {new Date(post.createdAt).toLocaleDateString()}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage 
+                          src={post.profile || '/default-avatar.png'} 
+                          alt="User profile" 
+                        />
+                        <AvatarFallback>{post.username?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm text-gray-700">{post.username}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1">
+                        <Heart 
+                          className={`w-4 h-4 ${
+                            post.liked ? 'fill-red-500 text-red-500' : 'text-gray-500'
+                          }`}
+                        />
+                        <span className={`text-sm ${post.liked ? 'text-red-500' : 'text-gray-500'}`}>
+                          {post.likeCount}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageSquare className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-500">{post.commentCount}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                {index < popularPosts.length - 1 && <Separator className="my-2" />}
+                {index < popularPosts.length - 1 && <Separator className="my-3" />}
               </div>
             ))}
           </CardContent>

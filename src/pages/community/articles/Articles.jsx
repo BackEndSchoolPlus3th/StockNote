@@ -26,14 +26,36 @@ const CommunityList = () => {
 
   const fetchPosts = async (category) => {
     try {
-    
       const mappedCategory = categoryMapping[category];
       const url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts?category=${mappedCategory}`;
-        
+      
       const response = await axios.get(url);
-      console.log(url);
-      console.log(response.data.data.content);
-      setPosts(response.data.data.content);
+      const postsData = response.data.data.content;
+
+      // 로그인한 사용자의 경우 좋아요 상태 확인
+      if (user) {
+        const postsWithLikeStatus = await Promise.all(
+          postsData.map(async (post) => {
+            try {
+              const likeResponse = await axios.get(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${post.id}/likes/check`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                  }
+                }
+              );
+              return { ...post, liked: likeResponse.data.data };
+            // eslint-disable-next-line no-unused-vars
+            } catch (error) {
+              return { ...post, liked: false };
+            }
+          })
+        );
+        setPosts(postsWithLikeStatus);
+      } else {
+        setPosts(postsData);
+      }
     } catch (error) {
       console.error('게시글 조회 실패:', error);
     }
@@ -65,7 +87,7 @@ const handleSearch = async (searchKeyword) => {
 
   useEffect(() => {
     fetchPosts(selectedCategory);
-  }, [selectedCategory]);
+  }, [selectedCategory, user]); // user 의존성 추가
 
   const handlePostClick = (postId) => {
     navigate(`/community/article/${postId}`);
@@ -136,10 +158,6 @@ const handleSearch = async (searchKeyword) => {
                               <Calendar className="h-4 w-4" />
                               <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <MessageCircle className="h-4 w-4" />
-                              <span>{post.comments.length || 0}</span>
-                            </div>
                           </div>
                         </div>
                       </div>
@@ -176,12 +194,30 @@ const handleSearch = async (searchKeyword) => {
                       )}
                     </div>
                     <p className="text-gray-600">{post.body}</p>
-                    <div className="flex gap-2 mt-4">
-                      {post.hashtags?.map((tag, index) => (
-                        <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
-                          #{tag}
-                        </span>
-                      ))}
+                    <div className="flex justify-between items-center mt-4">
+                      <div className="flex gap-2">
+                        {post.hashtags?.map((tag, index) => (
+                          <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1">
+                          <Heart 
+                            className={`h-4 w-4 ${
+                              post.liked ? 'fill-red-500 text-red-500' : 'text-gray-500'
+                            }`}
+                          />
+                          <span className={`${post.liked ? 'text-red-500' : 'text-gray-500'}`}>
+                            {post.likeCount || 0}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MessageCircle className="h-4 w-4 text-gray-500" />
+                          <span className="text-gray-500">{post.comments?.length || 0}</span>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
