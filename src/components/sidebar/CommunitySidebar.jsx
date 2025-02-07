@@ -167,7 +167,7 @@ const CommunitySidebar = ({ onSearch }) => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl pt-2">인기 게시글</CardTitle>
+            <CardTitle className="text-xl pt-2">인기 Top 5🔥</CardTitle>
             <p className="text-sm text-gray-500">
               {new Date().toLocaleDateString()} 기준
             </p>

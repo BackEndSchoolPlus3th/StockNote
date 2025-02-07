@@ -30,28 +30,38 @@ const CommunityList = () => {
   const categories = ["전체", "자유토론", "투자분석", "질문", "뉴스분석"];
   const navigate = useNavigate();
   const [sortType, setSortType] = useState('latest'); // 정렬 타입 상태 추가
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
-  const fetchPosts = async (category, sort = sortType) => {
+  const fetchPosts = async (category, sort = sortType, page = currentPage) => {
     try {
       const mappedCategory = categoryMapping[category];
+      const pageParam = `page=${page}&size=10`;
       let url;
       
       switch(sort) {
         case 'likes':
-          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular/likes`;
+          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular/likes?${pageParam}`;
           break;
         case 'comments':
-          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular/comments`;
+          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular/comments?${pageParam}`;
           break;
         case 'popular':
-          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular`;
+          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular?${pageParam}`;
           break;
         default: // 'latest'
-          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts?category=${mappedCategory}`;
+          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts?category=${mappedCategory}&${pageParam}`;
       }
-      
+
+      console.log('Fetching URL:', url); // 디버깅용
+
       const response = await axios.get(url);
+      console.log('Response:', response.data); // 디버깅용
+
       const postsData = response.data.data.content;
+      // 페이지 정보 업데이트
+      setTotalPages(response.data.data.totalPages);
+      console.log('Total Pages:', response.data.data.totalPages); // 디버깅용
 
       // 로그인한 사용자의 경우 좋아요 상태 확인
       if (user) {
@@ -109,12 +119,21 @@ const handleSearch = async (searchKeyword) => {
   // 정렬 타입 변경 핸들러
   const handleSortChange = (newSortType) => {
     setSortType(newSortType);
-    fetchPosts(selectedCategory, newSortType);
+    setCurrentPage(0); // 정렬 방식 변경 시 첫 페이지로 이동
+    fetchPosts(selectedCategory, newSortType, 0);
+  };
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (newPage) => {
+    console.log('Changing to page:', newPage); // 디버깅용
+    setCurrentPage(newPage);
+    fetchPosts(selectedCategory, sortType, newPage);
+    window.scrollTo(0, 0);
   };
 
   useEffect(() => {
-    fetchPosts(selectedCategory);
-  }, [selectedCategory, user, sortType]); // sortType 의존성 추가
+    fetchPosts(selectedCategory, sortType, currentPage);
+  }, [selectedCategory, user, sortType]); // currentPage는 의존성에서 제외
 
   const handlePostClick = (postId) => {
     navigate(`/community/article/${postId}`);
@@ -277,6 +296,40 @@ const handleSearch = async (searchKeyword) => {
                 </Card>
               ))}
             </div>
+
+            {/* Add pagination buttons */}
+            {totalPages > 0 && (
+              <div className="flex justify-center items-center gap-2 mt-8">
+                <Button
+                  variant="outline"
+                  onClick={() => handlePageChange(Math.max(0, currentPage - 1))}
+                  disabled={currentPage === 0}
+                  className="px-4 py-2"
+                >
+                  이전
+                </Button>
+
+                {[...Array(totalPages)].map((_, index) => (
+                  <Button
+                    key={index}
+                    variant={currentPage === index ? "default" : "outline"}
+                    onClick={() => handlePageChange(index)}
+                    className={`w-10 h-10 ${currentPage === index ? "bg-blue-500 text-white" : ""}`}
+                  >
+                    {index + 1}
+                  </Button>
+                ))}
+
+                <Button
+                  variant="outline"
+                  onClick={() => handlePageChange(Math.min(totalPages - 1, currentPage + 1))}
+                  disabled={currentPage === totalPages - 1}
+                  className="px-4 py-2"
+                >
+                  다음
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Right: Sidebar */}
