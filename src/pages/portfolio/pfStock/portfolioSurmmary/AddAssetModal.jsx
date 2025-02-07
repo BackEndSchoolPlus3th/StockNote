@@ -148,7 +148,7 @@ export const AddAssetModal = ({
         if (e.target.value.length >= 1) {
             try {
                 const response = await axios.post(
-                    `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stocks/search-stocks`,
+                    `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/searchDocs/stock`,
                     { keyword: e.target.value },
                     {
                         headers: {
