@@ -11,7 +11,7 @@ import CreateArticle from './pages/community/articles/CreateArticle';
 import UpdateArticle from './pages/community/articles/UpdateArticle';
 import CommunityList from './pages/community/articles/Articles';
 import MyPage from './pages/mypage/MyPage';
-import TotalPortfolioDetail from './pages/portfolio/portfolio/totalPortfolio/totalPortfolioDetail';
+import TotalPortfolioDetail from './pages/portfolio/portfolio/totalPortfolio/TotalPortfolioDetail';
 
 function App() {
     return (

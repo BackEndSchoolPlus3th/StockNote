@@ -7,6 +7,12 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const CommunityList = () => {
   const categoryMapping = {
@@ -21,81 +27,94 @@ const CommunityList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || "전체");
   const [posts, setPosts] = useState([]);
-  const [likedPosts, setLikedPosts] = useState({});
   const categories = ["전체", "자유토론", "투자분석", "질문", "뉴스분석"];
   const navigate = useNavigate();
+  const [sortType, setSortType] = useState('latest'); // 정렬 타입 상태 추가
 
-  const fetchPosts = async (category) => {
+  const fetchPosts = async (category, sort = sortType) => {
     try {
-    
       const mappedCategory = categoryMapping[category];
-      const url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts?category=${mappedCategory}`;
-        
+      let url;
+      
+      switch(sort) {
+        case 'likes':
+          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular/likes`;
+          break;
+        case 'comments':
+          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular/comments`;
+          break;
+        case 'popular':
+          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular`;
+          break;
+        default: // 'latest'
+          url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts?category=${mappedCategory}`;
+      }
+      
       const response = await axios.get(url);
-      console.log(url);
-      console.log(response.data.data.content);
-      setPosts(response.data.data.content);
+      const postsData = response.data.data.content;
+
+      // 로그인한 사용자의 경우 좋아요 상태 확인
+      if (user) {
+        const postsWithLikeStatus = await Promise.all(
+          postsData.map(async (post) => {
+            try {
+              const likeResponse = await axios.get(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${post.id}/likes/check`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                  }
+                }
+              );
+              return { ...post, liked: likeResponse.data.data };
+            // eslint-disable-next-line no-unused-vars
+            } catch (error) {
+              return { ...post, liked: false };
+            }
+          })
+        );
+        setPosts(postsWithLikeStatus);
+      } else {
+        setPosts(postsData);
+      }
     } catch (error) {
       console.error('게시글 조회 실패:', error);
     }
   };
 
-  // 좋아요 상태 확인 함수
-  const checkLikeStatus = async (postId) => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${postId}/likes/check`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        }
-      );
-      setLikedPosts(prev => ({
-        ...prev,
-        [postId]: response.data.data
-      }));
-    } catch (error) {
-      console.error('좋아요 상태 확인 실패:', error);
-    }
-  };
+  // handleSearch 함수 추가
+const handleSearch = async (searchKeyword) => {
+  if (!searchKeyword.trim()) {
+    fetchPosts(selectedCategory);
+    return;
+  }
 
-  // 좋아요 토글 함수
-  const toggleLike = async (postId, isLiked) => {
-    try {
-      const endpoint = isLiked ? 'unlike' : 'like';
-      await axios.post(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${postId}/${endpoint}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
+  try {
+    const response = await axios.get(
+      `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/search`,
+      {
+        params: {
+          keyword: searchKeyword,
+          searchType: 'ALL',
+          category: selectedCategory !== "전체" ? categoryMapping[selectedCategory] : null
         }
-      );
-      
-      // 게시글 목록 새로고침
-      await fetchPosts(selectedCategory);
-      // 좋아요 상태 업데이트
-      setLikedPosts(prev => ({
-        ...prev,
-        [postId]: !isLiked
-      }));
-    } catch (error) {
-      console.error('좋아요 토글 실패:', error);
-    }
+      }
+    );
+    setPosts(response.data.data.content);
+  } catch (error) {
+    console.error('검색 실패:', error);
+  }
+};
+
+  // 정렬 타입 변경 핸들러
+  const handleSortChange = (newSortType) => {
+    setSortType(newSortType);
+    fetchPosts(selectedCategory, newSortType);
   };
 
   useEffect(() => {
     fetchPosts(selectedCategory);
-  }, [selectedCategory]);
-
-  useEffect(() => {
-    // 각 게시물의 좋아요 상태 확인
-    posts.forEach(post => {
-      checkLikeStatus(post.id);
-    });
-  }, [posts]);
+  }, [selectedCategory, user, sortType]); // sortType 의존성 추가
 
   const handlePostClick = (postId) => {
     navigate(`/community/article/${postId}`);
@@ -117,34 +136,55 @@ const CommunityList = () => {
               <Button 
                 variant="outline" 
                 size="icon" 
-                className="rounded-full  hover:bg-blue-200 text-bg-blue-200 w-12 h-12 p-2"
+                className="rounded-full hover:bg-blue-200 text-bg-blue-200 w-12 h-12 p-2"
                 onClick={() => navigate('/community/editor')}
-                >
+              >
                 <Plus className="h-9 w-9" />
-                </Button>
+              </Button>
             </div>
-            <div className="flex gap-3 mb-8">
-              {categories.map((category, index) => (
-                <button
-                  key={index}
-                  className={`px-4 py-2 rounded-full font-medium ${
-                    selectedCategory === category 
-                      ? "bg-blue-500 text-white" 
-                      : "bg-blue-100 text-blue-800 hover:bg-blue-200"
-                  }`}
-                  onClick={() => handleCategoryChange(category)}
-                >
-                  {category}
-                </button>
-              ))}
+            
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex gap-3">
+                {categories.map((category, index) => (
+                  <button
+                    key={index}
+                    className={`px-4 py-2 rounded-full font-medium ${
+                      selectedCategory === category 
+                        ? "bg-blue-500 text-white" 
+                        : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                    }`}
+                    onClick={() => handleCategoryChange(category)}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="rounded-full px-4">
+                    {sortType === 'latest' && '최신순'}
+                    {sortType === 'likes' && '좋아요순'}
+                    {sortType === 'comments' && '댓글순'}
+                    {sortType === 'popular' && '인기순'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleSortChange('latest')}>
+                    최신순
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSortChange('likes')}>
+                    좋아요순
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSortChange('comments')}>
+                    댓글순
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSortChange('popular')}>
+                    인기순
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
-            {posts.length === 0 ? (
-      <div className="flex flex-col items-center justify-center py-20">
-        <p className="text-gray-500 text-lg mb-2">아직 게시글이 없습니다.</p>
-        <p className="text-gray-400">첫 게시글의 주인공이 되어보세요!</p>
-      </div>
-    ) : (
             <div className="space-y-4">
               {posts.map((post) => (
                 <Card 
@@ -172,16 +212,42 @@ const CommunityList = () => {
                               <Calendar className="h-4 w-4" />
                               <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <MessageCircle className="h-4 w-4" />
-                              <span>{post.comments.length || 0}</span>
-                            </div>
                           </div>
                         </div>
                       </div>
+                      {post.authorId === user?.id && (
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent card click event
+                              navigate(`/community/article/${post.id}/editor`, {
+                                state: {
+                                  title: post.title,
+                                  body: post.body,
+                                  hashtags: post.hashtags,
+                                  isEditing: true
+                                }
+                              });
+                            }}
+                          >
+                            수정
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Add delete logic here
+                            }}
+                          >
+                            삭제
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-gray-600 mt-2">{post.body}</p>
-                    
+                    <p className="text-gray-600">{post.body}</p>
                     <div className="flex justify-between items-center mt-4">
                       <div className="flex gap-2">
                         {post.hashtags?.map((tag, index) => (
@@ -190,34 +256,20 @@ const CommunityList = () => {
                           </span>
                         ))}
                       </div>
-                      
-                      <div className="flex items-center space-x-4">
+                      <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="hover:bg-transparent p-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleLike(post.id, likedPosts[post.id]);
-                            }}
-                          >
-                            <Heart 
-                              className={`h-6 w-6 transition-colors ${
-                                likedPosts[post.id] ? 'fill-red-500 text-red-500' : 'text-gray-400 hover:text-red-500'
-                              }`}
-                            />
-                          </Button>
-                          <span className="text-sm font-medium text-gray-500">
+                          <Heart 
+                            className={`h-4 w-4 ${
+                              post.liked ? 'fill-red-500 text-red-500' : 'text-gray-500'
+                            }`}
+                          />
+                          <span className={`${post.liked ? 'text-red-500' : 'text-gray-500'}`}>
                             {post.likeCount || 0}
                           </span>
                         </div>
-                        
                         <div className="flex items-center gap-1">
-                          <MessageCircle className="h-5 w-5 text-gray-400" />
-                          <span className="text-sm font-medium text-gray-500">
-                            {post.comments?.length || 0}
-                          </span>
+                          <MessageCircle className="h-4 w-4 text-gray-500" />
+                          <span className="text-gray-500">{post.comments?.length || 0}</span>
                         </div>
                       </div>
                     </div>
@@ -225,13 +277,11 @@ const CommunityList = () => {
                 </Card>
               ))}
             </div>
-    )}
           </div>
-           
 
           {/* Right: Sidebar */}
           <div>
-            <CommunitySidebar />
+            <CommunitySidebar onSearch={handleSearch} />
           </div>
         </div>
       </main>

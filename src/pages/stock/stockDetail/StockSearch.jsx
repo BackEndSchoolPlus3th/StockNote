@@ -22,7 +22,7 @@ const StockSearch = ({ isOpen, onClose, onAddStock }) => {
       try {
         // 토큰 없이 검색 요청
         const response = await axios.post(
-          `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stocks/search-stocks`,
+          `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/searchDocs/stock`,
           { keyword: e.target.value },
           {
             headers: {
