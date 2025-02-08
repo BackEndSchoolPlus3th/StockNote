@@ -9,12 +9,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
+import { LoginForm } from '@/components/login-form';
 
 const Community = () => {
   const { id } = useParams();
   const [post, setPost] = useState(null);
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const fetchArticle = async () => {
     try {
@@ -79,7 +82,13 @@ const Community = () => {
   const [editContent, setEditContent] = useState('');
 
 
-  const handleAddComment = async () => {
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    
+    if (!isAuthenticated) {
+      setShowLoginDialog(true);
+      return;
+    }
     try {
       await axios.post(
         `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${id}/comments`,
@@ -157,6 +166,31 @@ const Community = () => {
 
   useEffect(() => {
   }, [id]);
+
+  const handleSubmitComment = async (e) => {
+    e.preventDefault();
+    
+    if (!isAuthenticated) {
+      setShowLoginDialog(true);
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${id}/comments`,
+        { body: content },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      );
+      setContent('');
+      fetchArticle();
+    } catch (error) {
+      console.error('댓글 작성 실패:', error);
+    }
+  };
 
   if (!post) return <div>Loading...</div>;
 
@@ -338,6 +372,10 @@ const Community = () => {
     
         </div>
       </main>
+      <LoginForm 
+        open={showLoginDialog} 
+        onOpenChange={setShowLoginDialog}
+      />
     </div>
   );
 };

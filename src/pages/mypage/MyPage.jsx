@@ -114,6 +114,14 @@ const MyPage = () => {
     }
   };
 
+  const handlePostClick = (postId) => {
+    navigate(`/community/article/${postId}`);
+  };
+
+  const handleCommentClick = (postId) => {
+    navigate(`/community/article/${postId}`);
+  };
+
   return (
     <div className="min-h-screen">
       <div className="container mx-auto px-4 py-12">
@@ -189,12 +197,15 @@ const MyPage = () => {
                   <ScrollArea className="h-[330px] bg-white rounded-lg p-4">
                     <div className="space-y-4">
                       {posts.map((post) => (
-                        <div key={post.id} className="p-4 border rounded-lg">
-                          <h3 className="font-semibold">{post.title}</h3>
-                          <p className="text-gray-600">{post.body}</p>
-                          <span className="text-sm text-gray-400">
+                        <div 
+                          key={post.id} 
+                          onClick={() => handlePostClick(post.id)} 
+                          className="p-4 border-b cursor-pointer hover:bg-gray-50"
+                        >
+                          <h3 className="font-medium">{post.title}</h3>
+                          <p className="text-sm text-gray-500">
                             {new Date(post.createdAt).toLocaleDateString()}
-                          </span>
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -205,11 +216,15 @@ const MyPage = () => {
                   <ScrollArea className="h-[330px] bg-white rounded-lg p-4">
                     <div className="space-y-4">
                       {comments.map((comment) => (
-                        <div key={comment.id} className="p-4 border rounded-lg">
-                          <p className="text-gray-600">{comment.body}</p>
-                          <span className="text-sm text-gray-400">
+                        <div 
+                          key={comment.id} 
+                          onClick={() => handleCommentClick(comment.postId)} 
+                          className="p-4 border-b cursor-pointer hover:bg-gray-50"
+                        >
+                          <p>{comment.body}</p>
+                          <p className="text-sm text-gray-500">
                             {new Date(comment.createdAt).toLocaleDateString()}
-                          </span>
+                          </p>
                         </div>
                       ))}
                     </div>

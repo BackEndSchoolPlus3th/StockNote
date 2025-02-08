@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { LoginForm } from '@/components/login-form';
 
 const CommunityList = () => {
   const categoryMapping = {
@@ -17,11 +18,12 @@ const CommunityList = () => {
     "뉴스분석": "NEWS"
   };
 
-  const {  user } = useAuth();
+  const {  user, isAuthenticated } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || "전체");
   const [posts, setPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState({});
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const categories = ["전체", "자유토론", "투자분석", "질문", "뉴스분석"];
   const navigate = useNavigate();
 
@@ -106,6 +108,14 @@ const CommunityList = () => {
     setSearchParams({ category: category });
   };
 
+  const handleCreateArticle = () => {
+    if (!isAuthenticated) {
+      setShowLoginDialog(true);
+      return;
+    }
+    navigate('/community/editor');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8">
@@ -118,7 +128,7 @@ const CommunityList = () => {
                 variant="outline" 
                 size="icon" 
                 className="rounded-full  hover:bg-blue-200 text-bg-blue-200 w-12 h-12 p-2"
-                onClick={() => navigate('/community/editor')}
+                onClick={handleCreateArticle}
                 >
                 <Plus className="h-9 w-9" />
                 </Button>
@@ -235,6 +245,10 @@ const CommunityList = () => {
           </div>
         </div>
       </main>
+      <LoginForm 
+        open={showLoginDialog} 
+        onOpenChange={setShowLoginDialog}
+      />
     </div>
   );
 };

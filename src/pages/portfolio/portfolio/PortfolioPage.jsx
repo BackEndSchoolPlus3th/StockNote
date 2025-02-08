@@ -9,10 +9,11 @@ import { useAuth } from '@/contexts/AuthContext'; //useAuth 훅 가져오기
 import axios from 'axios';
 // HistoryModal import 추가
 import HistoryModal from './HistoryModal';
+import { LoginForm } from '@/components/login-form';
 
 const PortfolioPage = () => {
     const navigate = useNavigate();
-    const { accessToken } = useAuth(); //useAuth 훅 사용해서 accessToken 가져오기
+    const { accessToken, isAuthenticated } = useAuth(); //useAuth 훅 사용해서 accessToken 가져오기
     const [portfolios, setPortfolios] = useState([]);
     const [totalStats, setTotalStats] = useState({
         totalAssets: 0,
@@ -24,6 +25,7 @@ const PortfolioPage = () => {
         description: ''
     });
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+    const [showLoginDialog, setShowLoginDialog] = useState(false);
 
     useEffect(() => {
         if (accessToken) {
@@ -107,6 +109,14 @@ const PortfolioPage = () => {
         }
     };
 
+    const handleAddClick = () => {
+        if (!isAuthenticated) {
+            setShowLoginDialog(true);
+            return;
+        }
+        setIsModalOpen(true);
+    };
+
     return (
 
         <div className="container mx-auto px-4 py-8 w-1/2 h-[78vh] flex flex-col">
@@ -125,7 +135,7 @@ const PortfolioPage = () => {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={handleAddClick}
                             >
                                 <img
                                     className="w-6 h-6"
@@ -260,6 +270,12 @@ const PortfolioPage = () => {
                     />
                 )
             }
+
+            {/* 로그인 폼 */}
+            <LoginForm 
+                open={showLoginDialog} 
+                onOpenChange={setShowLoginDialog}
+            />
         </div >
     );
 };
