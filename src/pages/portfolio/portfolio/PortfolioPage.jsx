@@ -197,7 +197,7 @@ const PortfolioPage = () => {
                     </div>
 
                     {/* 포트폴리오 목록 */}
-                    <div className="mt-6 space-y-4">
+                    <div className="mt-6 space-y-4 overflow-y-auto max-h-[40vh] pr-2">
                         {portfolios.map((portfolio) => (
                             <button
                                 key={portfolio.id}

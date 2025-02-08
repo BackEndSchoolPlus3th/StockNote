@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import VolumeRankTable from './VolumeRankTable';
 import { Client } from "@stomp/stompjs";
 import SockJS from 'sockjs-client';
 import { Star, Trash2 } from "lucide-react";
@@ -128,7 +129,7 @@ const StockList = ({
   };
   return (
     <div className="flex justify-center w-full">
-      <div className="w-[805px] bg-[#b9dafc1a] rounded-[20px] border p-4 space-y-6">
+      <div className="w-[500px] bg-[#b9dafc1a] rounded-[20px] border p-4 space-y-6">
         {stocks.length > 0 ? (
           <div className="space-y-1.5">
             {stocks.map((stock) => (
@@ -137,46 +138,45 @@ const StockList = ({
                 className="border border-variable-collection-gray shadow-[4px_4px_4px_#00000040]"
                 onClick={() => !isDeleteMode && navigate(`/stocks/${stock.code}`)}
               >
-                <CardContent className="p-5">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-0.5">
-                        <h3 className="font-h3 text-xl text-black p-2.5">{stock.name}</h3>
-                        <h3 className="font-h4 text-gray-400 p-2.5">{stock.code}</h3>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-h3 text-black p-2.5">
-                          {stock.price ? `${stock.price.toLocaleString()}원` : "-"}
-                        </span>
-                        <span className={`font-h4 p-2.5 ${
-                          stock.change?.startsWith('+') 
-                            ? "text-red-500" 
-                            : stock.change?.startsWith('-') 
-                              ? "text-blue-500" 
-                              : "text-red-500"
-                        }`}>
-                          ({stock.change || "-"})
-                        </span>
-                      </div>
+                <CardContent className="p-0">
+                  <div className="flex justify-between items-center w-full">
+
+                      <div className="flex items-center space-x-2">
+                        <h3 className="font-h3 text-xl text-black p-3 ml-8 ">{stock.name}</h3>
+                        <h3 className="font-h4 text-gray-400 p-1">{stock.code}</h3>
+                  </div>
+                  <div className="flex items-center justify-end flex-1 pr-4">
+                  <span className="font-h3 text-lg text-black">
+                      {stock.price ? `${stock.price.toLocaleString()}원` : "-"}
+                    </span>
+                    <span className={`font-h4 p-2.5 ${
+                      stock.change?.startsWith('+') 
+                        ? "text-red-500" 
+                        : stock.change?.startsWith('-') 
+                          ? "text-blue-500" 
+                          : "text-red-500"
+                    }`}>
+                      ({stock.change || "-"})
+                  </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {!isDeleteMode && (
-                        <button 
-                          className="p-2"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavorite(stock.code);
-                          }}
-                        >
-                          <Star 
-                            className={`w-[22px] h-[21px] ${
-                              favoritedStocks[stock.code] 
-                                ? "text-yellow-500" 
-                                : "text-gray-400"
-                            }`} 
-                          />
-                        </button>
-                      )}
+                      {/* {!isDeleteMode && (
+                        // <button 
+                        //   className="p-2"
+                        //   onClick={(e) => {
+                        //     e.stopPropagation();
+                        //     toggleFavorite(stock.code);
+                        //   }}
+                        // >
+                        //   <Star 
+                        //     className={`w-[22px] h-[21px] ${
+                        //       favoritedStocks[stock.code] 
+                        //         ? "text-yellow-500" 
+                        //         : "text-gray-400"
+                        //     }`} 
+                        //   />
+                        // </button>
+                      )} */}
                       {isDeleteMode && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -219,7 +219,7 @@ const StockList = ({
           </div>
         )}
       </div>
-      
+      <VolumeRankTable />
     </div>
   );
 }

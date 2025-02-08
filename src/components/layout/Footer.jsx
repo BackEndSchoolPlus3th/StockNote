@@ -17,17 +17,15 @@ function Footer() {
                         </div>
                     </div>
                     <div className="flex space-x-6 text-sm">
-                        <a href="#" className="hover:underline">
-                            Privacy Policy
+                    
+                        <div className="flex flex-col items-end">
+                           이건학, 이미정, 한유림, 성수경, 백성현
+                        </div>
+                        <a href="https://github.com/BackEndSchoolPlus3th/StockNote" className="hover:underline">
+                           [FE]Github
                         </a>
-                        <a href="#" className="hover:underline">
-                            Terms & Conditions
-                        </a>
-                        <a href="#" className="hover:underline">
-                            Cookie Policy
-                        </a>
-                        <a href="#" className="hover:underline">
-                            Contact
+                        <a href="https://github.com/BackEndSchoolPlus3th/StockNote_BE" className="hover:underline">
+                           [BE]Github
                         </a>
                     </div>
                 </div>
