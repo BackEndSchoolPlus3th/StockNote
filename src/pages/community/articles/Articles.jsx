@@ -7,16 +7,14 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-<<<<<<< HEAD
 import { LoginForm } from '@/components/login-form';
-=======
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
->>>>>>> 7a0ea59ea23566f3d85f5d8b81aad4f085ae2047
+
 
 const CommunityList = () => {
   const categoryMapping = {
@@ -31,11 +29,8 @@ const CommunityList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || "전체");
   const [posts, setPosts] = useState([]);
-<<<<<<< HEAD
   const [likedPosts, setLikedPosts] = useState({});
   const [showLoginDialog, setShowLoginDialog] = useState(false);
-=======
->>>>>>> 7a0ea59ea23566f3d85f5d8b81aad4f085ae2047
   const categories = ["전체", "자유토론", "투자분석", "질문", "뉴스분석"];
   const navigate = useNavigate();
   const [sortType, setSortType] = useState('latest'); // 정렬 타입 상태 추가
@@ -153,15 +148,9 @@ const handleSearch = async (searchKeyword) => {
               <Button 
                 variant="outline" 
                 size="icon" 
-<<<<<<< HEAD
                 className="rounded-full  hover:bg-blue-200 text-bg-blue-200 w-12 h-12 p-2"
                 onClick={handleCreateArticle}
                 >
-=======
-                className="rounded-full hover:bg-blue-200 text-bg-blue-200 w-12 h-12 p-2"
-                onClick={() => navigate('/community/editor')}
-              >
->>>>>>> 7a0ea59ea23566f3d85f5d8b81aad4f085ae2047
                 <Plus className="h-9 w-9" />
               </Button>
             </div>

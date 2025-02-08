@@ -8,11 +8,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import HeaderSearch from './HeaderSearch';
 import KeywordPopup from '@/components/keyword/KeywordPopup';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-<<<<<<< HEAD
+
+
 import { LoginForm } from '@/components/login-form';
-=======
+
 import { FiMenu } from 'react-icons/fi';
->>>>>>> 7a0ea59ea23566f3d85f5d8b81aad4f085ae2047
+
 
 import {
   NavigationMenu,
@@ -47,11 +48,8 @@ export default function Frame() {
   const [keywordNotifications, setKeywordNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [eventSource, setEventSource] = useState(null);
-<<<<<<< HEAD
   const [showLoginDialog, setShowLoginDialog] = useState(false);
-=======
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
->>>>>>> 7a0ea59ea23566f3d85f5d8b81aad4f085ae2047
 
   useEffect(() => {
     if (user?.id) {
