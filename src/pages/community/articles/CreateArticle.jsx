@@ -17,7 +17,7 @@ const CreateArticle = () => {
     hashtags: ''
   });
   const [suggestions, setSuggestions] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
   const hashtagContainerRef = useRef(null);
@@ -150,6 +150,23 @@ const CreateArticle = () => {
     }
   };
 
+  const MAX_TITLE_LENGTH = 100;
+  const MAX_CONTENT_LENGTH = 2000;
+
+  const handleContentChange = (e) => {
+    const content = e.target.value;
+    if (content.length <= MAX_CONTENT_LENGTH) {
+      setFormData({...formData, content: content});
+    }
+  };
+
+  const handleTitleChange = (e) => {
+    const title = e.target.value;
+    if (title.length <= MAX_TITLE_LENGTH) {
+      setFormData({...formData, title: title});
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
@@ -179,16 +196,28 @@ const CreateArticle = () => {
                 <Input
                   placeholder="제목"
                   value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  onChange={handleTitleChange}
+                  maxLength={MAX_TITLE_LENGTH}
                 />
+                <div className="text-sm text-gray-500 text-right mt-1">
+                  {formData.title.length}/{MAX_TITLE_LENGTH}
+                </div>
               </div>
               <div>
                 <Textarea
                   placeholder="내용을 입력하세요"
                   className="min-h-[200px]"
                   value={formData.content}
-                  onChange={(e) => setFormData({...formData, content: e.target.value})}
+                  onChange={handleContentChange}
+                  maxLength={MAX_CONTENT_LENGTH}
                 />
+                <div className={`text-sm text-right mt-1 ${
+                  formData.content.length > MAX_CONTENT_LENGTH * 0.9 
+                    ? 'text-red-500' 
+                    : 'text-gray-500'
+                }`}>
+                  {formData.content.length}/{MAX_CONTENT_LENGTH}
+                </div>
               </div>
               <div className="mb-4" ref={hashtagContainerRef}>
                 <label className="block text-sm font-medium mb-2">해시태그</label>
