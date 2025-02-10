@@ -4,6 +4,7 @@ import VolumeRankTable from './VolumeRankTable';
 import { Client } from "@stomp/stompjs";
 import SockJS from 'sockjs-client';
 import { Star, Trash2 } from "lucide-react";
+import StockSearch from "./StockSearch";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -17,21 +18,14 @@ import {
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 
-const StockList = ({ 
-  stocks,
-  onAdd,
-  onDelete,
-  isDeleteMode,
-  setIsDeleteMode 
-}) => {
+const StockList = ({ stocks, onAdd, onDelete, isDeleteMode, setIsDeleteMode }) => {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedStockToDelete, setSelectedStockToDelete] = useState(null);
   const [favoritedStocks, setFavoritedStocks] = useState({});
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const stompClient = useRef(null);
   const subscriptions = useRef({});
   const navigate = useNavigate();
   
-  // WebSocket 연결 및 구독 설정
   const connectWebSocket = () => {
     if (stompClient.current?.connected) {
       console.log('🛑 WebSocket already connected. Skipping re-connection.');
@@ -46,7 +40,7 @@ const StockList = ({
 
     console.log('Connecting to WebSocket with stocks:', stocks);
 
-    const socket = new SockJS('http://localhost:8090/ws', null, {
+    const socket = new SockJS(`${import.meta.env.VITE_CORE_API_BASE_URL}/ws`, null, {
       transports: ['websocket'],
       timeout: 30000
     });
@@ -124,12 +118,20 @@ const StockList = ({
     }
   };
   const handleAddStock = async () => {
-    await fetchStocks(); 
-    setIsSearchOpen(false);
+    setIsSearchOpen(false);  // 모달 닫기
+    await onAdd();           // ✅ 부모 컴포넌트에서 `fetchStocks()` 실행
   };
+  
+
   return (
     <div className="flex justify-center w-full">
       <div className="w-[500px] bg-[#b9dafc1a] rounded-[20px] border p-4 space-y-6">
+      <button onClick={() => setIsSearchOpen(true)}>종목 추가</button>
+      <StockSearch 
+          isOpen={isSearchOpen} 
+          onClose={() => setIsSearchOpen(false)} 
+          onAdd={onAdd}  // ✅ StockSearch에서 종목 추가 후 `fetchStocks()` 실행
+        />
         {stocks.length > 0 ? (
           <div className="space-y-1.5">
             {stocks.map((stock) => (

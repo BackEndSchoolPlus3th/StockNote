@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Plus } from "lucide-react";
 import axios from 'axios';
 
-const StockSearch = ({ isOpen, onClose, onAddStock }) => {
+const StockSearch = ({ isOpen, onClose, onAdd }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,12 +20,17 @@ const StockSearch = ({ isOpen, onClose, onAddStock }) => {
     if (e.target.value.length >= 1) {
       setIsLoading(true);
       try {
-        // 토큰 없이 검색 요청
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          console.log('로그인이 필요합니다.');
+          return;
+        }
         const response = await axios.post(
           `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/searchDocs/stock`,
           { keyword: e.target.value },
           {
             headers: {
+              'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
             }
           }
@@ -49,8 +54,8 @@ const StockSearch = ({ isOpen, onClose, onAddStock }) => {
 
   const handleSelectStock = async (stock) => {
     if (selecting) return;
-
     setSelecting(true);
+    
     try {
       // 종목 추가할 때만 토큰 사용
       const token = localStorage.getItem('accessToken');
@@ -71,7 +76,7 @@ const StockSearch = ({ isOpen, onClose, onAddStock }) => {
       );
 
       if (response.status === 200) {
-        await onAddStock();
+        await onAdd();
         onClose();
         setSearchQuery("");
         setSearchResults([]);
