@@ -33,7 +33,7 @@ const CommunityList = () => {
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const categories = ["전체", "자유토론", "투자분석", "질문", "뉴스분석"];
   const navigate = useNavigate();
-  const [sortType, setSortType] = useState('latest'); // 정렬 타입 상태 추가
+  const [sortType, setSortType] = useState('latest');
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -57,15 +57,9 @@ const CommunityList = () => {
           url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts?category=${mappedCategory}&${pageParam}`;
       }
 
-      console.log('Fetching URL:', url); // 디버깅용
-
       const response = await axios.get(url);
-      console.log('Response:', response.data); // 디버깅용
-
       const postsData = response.data.data.content;
-      // 페이지 정보 업데이트
       setTotalPages(response.data.data.totalPages);
-      console.log('Total Pages:', response.data.data.totalPages); // 디버깅용
 
       // 로그인한 사용자의 경우 좋아요 상태 확인
       if (user) {
@@ -81,7 +75,6 @@ const CommunityList = () => {
                 }
               );
               return { ...post, liked: likeResponse.data.data };
-            // eslint-disable-next-line no-unused-vars
             } catch (error) {
               return { ...post, liked: false };
             }
@@ -96,40 +89,36 @@ const CommunityList = () => {
     }
   };
 
-  // handleSearch 함수 추가
-const handleSearch = async (searchKeyword) => {
-  if (!searchKeyword.trim()) {
-    fetchPosts(selectedCategory);
-    return;
-  }
+  const handleSearch = async (searchKeyword, searchType = 'ALL') => {
+    if (!searchKeyword.trim()) {
+      fetchPosts(selectedCategory);
+      return;
+    }
 
-  try {
-    const response = await axios.get(
-      `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/search`,
-      {
-        params: {
-          keyword: searchKeyword,
-          searchType: 'ALL',
-          category: selectedCategory !== "전체" ? categoryMapping[selectedCategory] : null
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/search`,
+        {
+          params: {
+            keyword: searchKeyword,
+            searchType: searchType,
+            category: selectedCategory !== "전체" ? categoryMapping[selectedCategory] : null
+          }
         }
-      }
-    );
-    setPosts(response.data.data.content);
-  } catch (error) {
-    console.error('검색 실패:', error);
-  }
-};
+      );
+      setPosts(response.data.data.content);
+    } catch (error) {
+      console.error('검색 실패:', error);
+    }
+  };
 
-  // 정렬 타입 변경 핸들러
   const handleSortChange = (newSortType) => {
     setSortType(newSortType);
-    setCurrentPage(0); // 정렬 방식 변경 시 첫 페이지로 이동
+    setCurrentPage(0);
     fetchPosts(selectedCategory, newSortType, 0);
   };
 
-  // 페이지 변경 핸들러
   const handlePageChange = (newPage) => {
-    console.log('Changing to page:', newPage); // 디버깅용
     setCurrentPage(newPage);
     fetchPosts(selectedCategory, sortType, newPage);
     window.scrollTo(0, 0);
@@ -137,7 +126,7 @@ const handleSearch = async (searchKeyword) => {
 
   useEffect(() => {
     fetchPosts(selectedCategory, sortType, currentPage);
-  }, [selectedCategory, user, sortType]); // currentPage는 의존성에서 제외
+  }, [selectedCategory, user, sortType]);
 
   const handlePostClick = (postId) => {
     navigate(`/community/article/${postId}`);
@@ -271,7 +260,7 @@ const handleSearch = async (searchKeyword) => {
                         </div>
                         <div className="flex items-center gap-1">
                           <MessageCircle className="h-4 w-4 text-gray-500" />
-                          <span className="text-gray-500">{post.comments?.length || 0}</span>
+                          <span className="text-gray-500">{post.commentCount || 0}</span>
                         </div>
                       </div>
                     </div>
@@ -280,7 +269,7 @@ const handleSearch = async (searchKeyword) => {
               ))}
             </div>
 
-            {/* Add pagination buttons */}
+            {/* Pagination */}
             {totalPages > 0 && (
               <div className="flex justify-center items-center gap-2 mt-8">
                 <Button
