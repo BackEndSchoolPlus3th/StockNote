@@ -90,7 +90,8 @@ const PortfolioPage = () => {
     const handleTotalAssetsClick = async () => {
         try {
             const response = await axios.get(
-                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/my`,
+                // `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/my`, //mysql
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/searchDocs/myPortfolio`,    //elastic
                 {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`
