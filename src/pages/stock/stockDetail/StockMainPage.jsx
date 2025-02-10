@@ -119,17 +119,13 @@ const StockMainPage = () => {
               종목 추가하기
               </Button>
             }</div>
-
-
-                <StockList 
-                  stocks={stocks} 
-                  onAdd={() => setIsSearchOpen(true)}
-                  onDelete={handleDeleteStock}
-                  isDeleteMode={isDeleteMode}
-                  setIsDeleteMode={setIsDeleteMode}
-                />
-
-            {/* ✅ 종목이 없을 때 "종목 추가하기" 버튼 표시 */}
+        <StockList 
+          stocks={stocks} 
+          onAdd={fetchStocks}  // ✅ 올바르게 전달!
+          onDelete={handleDeleteStock}
+          isDeleteMode={isDeleteMode}
+          setIsDeleteMode={setIsDeleteMode}
+        />
           </>
         )}
           </div>
@@ -137,7 +133,7 @@ const StockMainPage = () => {
       <StockSearch
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        onAddStock={handleAddStock} 
+        onAdd={fetchStocks}  // ✅ StockSearch에서 `onAdd`을 받으므로 수정!
       />
 
       {/* Add LoginForm Dialog */}
