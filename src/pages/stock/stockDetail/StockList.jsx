@@ -130,7 +130,7 @@ const StockList = ({ stocks, onAdd, onDelete, isDeleteMode, setIsDeleteMode }) =
       <StockSearch 
           isOpen={isSearchOpen} 
           onClose={() => setIsSearchOpen(false)} 
-          onAdd={onAdd}  // ✅ StockSearch에서 종목 추가 후 `fetchStocks()` 실행
+          onAdd={onAdd}
         />
         {stocks.length > 0 ? (
           <div className="space-y-1.5">

@@ -27,10 +27,10 @@ const StockDetailPage = () => {
     const fetchStockData = async () => {
       try {
         // 비로그인 상태에서도 호출 가능한 API 요청
-        const priceRes = await axios.get(`/api/v1/stockApis/price?stockCode=${stockCode}`);
+        const priceRes = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stockApis/price?stockCode=${stockCode}`);
         setStockData(priceRes.data);
 
-        const voteRes = await axios.get(`/api/v1/votes/${stockCode}/vote-statistics`);
+        const voteRes = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/votes/${stockCode}/vote-statistics`);
         console.log('🔄 최신 투표 데이터 (새로고침 후):', voteRes.data);
         setVoteStats(voteRes.data.data);
 
@@ -57,12 +57,12 @@ const StockDetailPage = () => {
               }
             };
 
-        const chartRes = await axios.get('/api/v1/stockApis/chart', chartOptions);
+        const chartRes = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stockApis/chart`, chartOptions);
         setChartData(chartRes.data);
 
         // 차트 데이터 로드 로직 (기존과 동일)
         if (periodType === 'TIME') {
-          const timeRes = await axios.get(`/api/v1/stockApis/time-prices?stockCode=${stockCode}`);
+          const timeRes = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stockApis/time-prices?stockCode=${stockCode}`);
           setChartData(timeRes.data);
         } else {
           const now = new Date();
@@ -117,18 +117,15 @@ const StockDetailPage = () => {
       const token = localStorage.getItem('accessToken');
 
       const response = await axios.post(
-        `/api/v1/votes/${stockCode}`,
-        {
-          buy: voteType === 'BUY',
-          sell: voteType === 'SELL'
-        },
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/votes/${stockCode}`,
+        { buy: voteType === 'BUY', sell: voteType === 'SELL' },
         {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }
-      );
+      );      
 
       if (response.status === 200) {
         setVoteMessage('투표가 성공적으로 완료되었습니다.');
@@ -170,13 +167,13 @@ const StockDetailPage = () => {
     const fetchPosts = async () => {
       const sName = chartData.stockName;
       try {
-        const response = await axios.get(`/api/v1/stocks/posts`, {
+        const response = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stocks/posts`, {
           params: {
             sName: sName,
             page: currentPage,
             size: 3
           }
-        });
+        });        
         console.log('게시글 이름:',sName );
        console.log('게시글 로딩:', response.data);
         setPosts(response.data.data.content);
