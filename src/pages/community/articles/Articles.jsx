@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback,AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Heart, Plus, MessageCircle } from "lucide-react";
-import CommunitySidebar from "@/components/sidebar/CommunitySidebar";
+import CommunitySidebar from "@/pages/community/sidebar/CommunitySidebar";
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';

@@ -8,7 +8,6 @@ import { Search, Heart, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from '@/contexts/AuthContext';
 
-// eslint-disable-next-line react/prop-types
 const CommunitySidebar = ({ onSearch }) => {
   const { user } = useAuth();
   const [popularPosts, setPopularPosts] = useState([]);
@@ -30,7 +29,6 @@ const CommunitySidebar = ({ onSearch }) => {
         { headers }
       );
 
-      // 각 게시글의 좋아요 상태 확인
       const postsWithLikeStatus = await Promise.all(
         response.data.data.content.map(async (post) => {
           if (!user) return { ...post, liked: false };
@@ -40,7 +38,6 @@ const CommunitySidebar = ({ onSearch }) => {
               { headers }
             );
             return { ...post, liked: likeResponse.data.data };
-          // eslint-disable-next-line no-unused-vars
           } catch (error) {
             return { ...post, liked: false };
           }
@@ -54,7 +51,7 @@ const CommunitySidebar = ({ onSearch }) => {
 
   useEffect(() => {
     fetchPopularPosts();
-  }, [user]); // user 의존성 추가
+  }, [user]);
 
   const [popularVotes, setPopularVotes] = useState([]);
 
@@ -77,14 +74,13 @@ const CommunitySidebar = ({ onSearch }) => {
     fetchPopularVotes();
   }, []);
 
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       onSearch(searchKeyword);
     }
   };
 
-  // 날짜 포맷팅 함수 추가
   const formatDate = (date) => {
     const now = new Date();
     const targetDate = new Date(date);
@@ -119,51 +115,51 @@ const CommunitySidebar = ({ onSearch }) => {
                 placeholder="게시글 검색"
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 className="pl-10"
               />
               <Search 
-                className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer"
                 onClick={() => onSearch(searchKeyword)}
               />
             </div>
           </CardContent>
         </Card>
 
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle className="text-xl">실시간 인기 투표</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {popularVotes.map((item, index) => (
-            <div key={index} className="mb-4">
-              <h3 className="text-lg mb-2">{item.stockName}</h3>
-              <div className="flex items-center gap-2 flex-nowrap">
-                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-                  매수
-                </span>
-                <span className="whitespace-nowrap">{item.buyPercentage.toFixed(1)}%</span>
-                
-                <div className="relative flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-500"
-                    style={{ width: `${item.buyPercentage}%` }}
-                  />
-                  <div
-                    className="absolute top-0 right-0 h-full bg-red-500 transition-all duration-500"
-                    style={{ width: `${item.sellPercentage}%` }}
-                  />
-                </div>
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-xl">실시간 인기 투표</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {popularVotes.map((item, index) => (
+              <div key={index} className="mb-4">
+                <h3 className="text-lg mb-2">{item.stockName}</h3>
+                <div className="flex items-center gap-2 flex-nowrap">
+                  <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                    매수
+                  </span>
+                  <span className="whitespace-nowrap">{item.buyPercentage.toFixed(1)}%</span>
+                  
+                  <div className="relative flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-500"
+                      style={{ width: `${item.buyPercentage}%` }}
+                    />
+                    <div
+                      className="absolute top-0 right-0 h-full bg-red-500 transition-all duration-500"
+                      style={{ width: `${item.sellPercentage}%` }}
+                    />
+                  </div>
 
-                <span className="whitespace-nowrap">{item.sellPercentage.toFixed(1)}%</span>
-                <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full">
-                  매도
-                </span>
+                  <span className="whitespace-nowrap">{item.sellPercentage.toFixed(1)}%</span>
+                  <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full">
+                    매도
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+            ))}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
