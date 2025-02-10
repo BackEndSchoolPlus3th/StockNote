@@ -215,7 +215,7 @@ const UpdateArticle = () => {
                     type="text"
                     value={inputValue}
                     onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}
+                    onKeyPress={handleKeyDown}
                     placeholder="해시태그 입력..."
                     className="w-full p-2 border rounded"
                   />

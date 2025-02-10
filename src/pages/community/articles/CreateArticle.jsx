@@ -51,33 +51,33 @@ const CreateArticle = () => {
     []
   );
 
+  const handleTagSelect = (tag) => {
+    setSelectedTags((prevTags) => {
+      const updatedTags = [...prevTags, tag.trim()]; // ✅ trim()으로 공백 제거
+      setFormData((prev) => ({
+        ...prev,
+        hashtags: updatedTags.join(',') // ✅ 항상 최신 selectedTags 반영
+      }));
+      return updatedTags;
+    });
+  
+    setInputValue(''); // ✅ inputValue 초기화
+    setSuggestions([]); // ✅ 자동완성 목록 초기화
+    debouncedSearch.cancel(); // ✅ 불필요한 API 호출 방지
+  };
+  
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      hashtags: selectedTags.join(',') // ✅ 항상 최신 selectedTags 반영
+    }));
+  }, [selectedTags]);
+
   const handleInputChange = (e) => {
-    const value = e.target.value;
+    const value = e.target.value.trim();  // ✅ 공백 제거
     setInputValue(value);
     setIsLoading(true);
     debouncedSearch(value);
-  };
-
-  const handleTagSelect = (tag) => {
-    if (!selectedTags.includes(tag)) {
-      setSelectedTags([...selectedTags, tag]);
-    }
-    setInputValue('');
-    setSuggestions([]); // Immediate reset
-    debouncedSearch.cancel(); // Cancel any pending searches
-    setFormData(prev => ({
-      ...prev,
-      hashtags: [...selectedTags, tag].join(',')
-    }));
-  };
-
-  const removeTag = (tagToRemove) => {
-    const newTags = selectedTags.filter(tag => tag !== tagToRemove);
-    setSelectedTags(newTags);
-    setFormData(prev => ({
-      ...prev,
-      hashtags: newTags.join(',')
-    }));
   };
 
   const handleSubmit = async (e) => {
@@ -109,7 +109,6 @@ const CreateArticle = () => {
     }
   };
 
-  // Add validation check function
   const isFormValid = () => {
     console.log(formData);
     return (
@@ -119,7 +118,6 @@ const CreateArticle = () => {
     );
   };
 
-  // Update ref handler
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (hashtagContainerRef.current && !hashtagContainerRef.current.contains(event.target)) {
@@ -133,21 +131,32 @@ const CreateArticle = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Add handleKeyDown function
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault(); // Stop form submission
-      if (inputValue.trim()) {
-        if (suggestions.length > 0) {
-          handleTagSelect(suggestions[0]);
-        } else {
-          const newTag = inputValue.trim();
+      e.preventDefault(); // ✅ 기본 동작(폼 제출) 방지
+      e.stopPropagation(); // ✅ 이벤트 전파 방지 (MacBook에서 필수)
+
+      setTimeout(() => {
+        if (inputValue.trim()) {
+          let newTag = inputValue.trim();
+    
+          if (suggestions.length > 0) {
+            newTag = suggestions[0]; // 🚀 자동완성 첫 번째 태그 우선 선택
+          }
+    
           if (!selectedTags.includes(newTag)) {
             handleTagSelect(newTag);
           }
         }
-      }
+      }, 0);
     }
+  };
+
+  
+  
+  const removeTag = (tagToRemove) => {
+    const newTags = selectedTags.filter(tag => tag !== tagToRemove);
+    setSelectedTags(newTags);
   };
 
   const MAX_TITLE_LENGTH = 100;
@@ -166,6 +175,8 @@ const CreateArticle = () => {
       setFormData({...formData, title: title});
     }
   };
+
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -242,7 +253,7 @@ const CreateArticle = () => {
                     type="text"
                     value={inputValue}
                     onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}  // Add this
+                    onKeyPress={handleKeyDown}
                     placeholder="해시태그 입력..."
                     className="w-full p-2 border rounded"
                   />
