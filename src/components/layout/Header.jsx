@@ -8,7 +8,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import HeaderSearch from './HeaderSearch';
 import KeywordPopup from '@/components/keyword/KeywordPopup';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+
+import { LoginForm } from '@/components/login-form';
+
 import { FiMenu } from 'react-icons/fi';
+
 
 import {
   NavigationMenu,
@@ -43,6 +48,7 @@ export default function Frame() {
   const [keywordNotifications, setKeywordNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [eventSource, setEventSource] = useState(null);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -150,6 +156,7 @@ export default function Frame() {
         }
       );
 
+      // Update local state to mark notification as read
       setKeywordNotifications(prev => 
         prev.map(note => 
           note.id === notification.id 
@@ -162,10 +169,9 @@ export default function Frame() {
       if (notification.postId) {
         navigate(`/community/article/${notification.postId}`);
         setShowNotifications(false);
-        window.location.reload();
       }
     } catch (error) {
-      console.error('알림 읽음 처리 실패:', error);
+      console.error('키워드 알림 읽음 처리 실패:', error);
     }
   };
 
@@ -242,13 +248,18 @@ export default function Frame() {
 
             </>
           ) : (
-            // 여기가 실행되어야 로그인 버튼이 보임
-            <Button
-              className="bg-[#3B82F6] text-white rounded-lg px-4 py-2"
-              onClick={() => navigate('/login')}
-            >
-              로그인
-            </Button>
+            <>
+              <Button
+                className="bg-[#3B82F6] text-white rounded-lg px-4 py-2"
+                onClick={() => setShowLoginDialog(true)}
+              >
+                로그인
+              </Button>
+              <LoginForm 
+                open={showLoginDialog} 
+                onOpenChange={setShowLoginDialog}
+              />
+            </>
           )}
 
         </div>
@@ -310,10 +321,9 @@ export default function Frame() {
                   </TabsContent>
                   
                   <TabsContent value="keyword" className="p-4 max-h-[300px] overflow-y-auto">
-                    {keywordUnreadNotifications.length === 0 ? (
-                      <p className="text-gray-500 text-center">새로운 키워드 알림이 없습니다.</p>
-                    ) : (
-                      keywordUnreadNotifications.map(notification => (
+                    {keywordNotifications
+                      .filter(note => !note.isRead)
+                      .map(notification => (
                         <div 
                           key={notification.id} 
                           className="p-2 hover:bg-gray-100 cursor-pointer"
@@ -324,8 +334,7 @@ export default function Frame() {
                             {new Date(notification.createdAt).toLocaleString()}
                           </p>
                         </div>
-                      ))
-                    )}
+                      ))}
                   </TabsContent>
                 </Tabs>
               </div>

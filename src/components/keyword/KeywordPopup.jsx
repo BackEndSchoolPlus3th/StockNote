@@ -78,19 +78,30 @@ const KeywordPopup = () => {
     }
   };
 
+  const isDuplicateKeyword = (newKeyword, newCategory) => {
+    return keywords.some(k => 
+      k.keyword === newKeyword.trim() && 
+      k.postCategory === newCategory
+    );
+  };
+
   // Add keyword with category
-  const handleAddKeyword = useCallback(() => {
-    if (newKeyword.trim() && newCategory) {
-      const newKeywordObj = {
-        keyword: newKeyword.trim(),
-        postCategory: newCategory
-      };
-      
-      setKeywords(prev => [...prev, newKeywordObj]);
-      setNewKeyword('');
-      setNewCategory('');
+  const handleAddKeyword = () => {
+    const trimmedKeyword = newKeyword.trim();
+    if (!trimmedKeyword || !newCategory) return;
+
+    if (isDuplicateKeyword(trimmedKeyword, newCategory)) {
+      alert('이미 동일한 키워드와 카테고리가 존재합니다.');
+      return;
     }
-  }, [newKeyword, newCategory]);
+
+    setKeywords(prev => [
+      ...prev, 
+      { keyword: trimmedKeyword, postCategory: newCategory }
+    ]);
+    setNewKeyword('');
+    setNewCategory('');
+  };
 
   // Delete keyword
   const handleDeleteKeyword = useCallback((keywordToDelete) => {
