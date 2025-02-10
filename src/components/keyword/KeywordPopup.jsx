@@ -135,7 +135,7 @@ const KeywordPopup = () => {
           키워드 알림 설정
         </button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent aria-hidden={!isOpen}>
         <AlertDialogHeader>
           <AlertDialogTitle>키워드 알림 설정</AlertDialogTitle>
           <AlertDialogDescription>
@@ -144,17 +144,23 @@ const KeywordPopup = () => {
         </AlertDialogHeader>
 
         <div className="flex gap-2 mb-4">
-          <Input
-            value={newKeyword}
-            onChange={(e) => setNewKeyword(e.target.value)}
-            placeholder="키워드 입력"
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && newKeyword.trim() && newCategory) {
-                e.preventDefault();
-                handleAddKeyword();
-              }
-            }}
-          />
+        <Input
+    value={newKeyword}
+    onChange={(e) => setNewKeyword(e.target.value)}
+    placeholder="키워드 입력"
+    onBlur={(e) => {
+        setTimeout(() => {
+            setNewKeyword(e.target.value)
+        }, 100)
+    }}
+    onKeyDown={(e) => {
+        if (e.isComposing) return // 한글 입력 중인 경우 무시
+        if (e.key === 'Enter' && newKeyword.trim() && newCategory) {
+            e.preventDefault()
+            handleAddKeyword()
+        }
+    }}
+/>
           <Select 
             value={newCategory} 
             onValueChange={setNewCategory}

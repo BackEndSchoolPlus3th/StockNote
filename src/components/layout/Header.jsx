@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -50,7 +50,7 @@ export default function Frame() {
   const [eventSource, setEventSource] = useState(null);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+  
   useEffect(() => {
     if (user?.id) {
       const sse = new EventSource(
