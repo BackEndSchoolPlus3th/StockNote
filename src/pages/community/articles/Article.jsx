@@ -166,6 +166,8 @@ const Community = () => {
   useEffect(() => {
   }, [id]);
 
+  //  주석 처리 (handleAddComment가 동일한 기능 수행)
+  /*
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     
@@ -190,6 +192,7 @@ const Community = () => {
       console.error('댓글 작성 실패:', error);
     }
   };
+  */
 
   if (!post) return <div>Loading...</div>;
 
@@ -312,7 +315,7 @@ const Community = () => {
                         </div>
                         {/* Comment Actions */}
                         {comment.authorId === user.id && editingCommentId !== comment.id &&(
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 shrink-0">
                           <Button 
                             variant="ghost" 
                             size="sm"
@@ -339,14 +342,26 @@ const Community = () => {
                           <Input
                             value={editContent}
                             onChange={(e) => setEditContent(e.target.value)}
+                            className="flex-1 break-words whitespace-pre-wrap"
                           />
-                          <Button onClick={() => handleEditComment(comment.id)}>
+                          <Button 
+                            onClick={() => handleEditComment(comment.id)}
+                            className="shrink-0"
+                          >
                             저장
                           </Button>
-                          <Button variant="ghost" onClick={() => setEditingCommentId(null)}>취소</Button>
+                          <Button 
+                            variant="ghost" 
+                            onClick={() => setEditingCommentId(null)}
+                            className="shrink-0"
+                          >
+                            취소
+                          </Button>
                         </div>
                       ) : (
-                        <p className="mt-2">{comment.body}</p>
+                        <p className="mt-2 break-words whitespace-pre-wrap overflow-hidden max-w-[700px]">
+                          {comment.body}
+                        </p>
                       )}
                     </div>
                   ))}
@@ -356,11 +371,11 @@ const Community = () => {
                 <div className="flex gap-2">
                   <Input
                     placeholder="댓글 내용을 입력하세요"
-                    className="flex-1"
+                    className="flex-1 break-words whitespace-pre-wrap"
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                   />
-                  <Button onClick={handleAddComment}>
+                  <Button className="shrink-0" onClick={handleAddComment}>
                     댓글 등록
                   </Button>
                 </div>
