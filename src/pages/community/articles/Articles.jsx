@@ -29,7 +29,6 @@ const CommunityList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || "전체");
   const [posts, setPosts] = useState([]);
-  const [likedPosts, setLikedPosts] = useState({});
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const categories = ["전체", "자유토론", "투자분석", "질문", "뉴스분석"];
   const navigate = useNavigate();
@@ -61,28 +60,41 @@ const CommunityList = () => {
       const postsData = response.data.data.content;
       setTotalPages(response.data.data.totalPages);
 
-      // 로그인한 사용자의 경우 좋아요 상태 확인
       if (user) {
-        const postsWithLikeStatus = await Promise.all(
+        const headers = {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        };
+
+        const postsWithStatus = await Promise.all(
           postsData.map(async (post) => {
             try {
-              const likeResponse = await axios.get(
-                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${post.id}/likes/check`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-                  }
-                }
-              );
-              return { ...post, liked: likeResponse.data.data };
+              const [likeResponse, commentResponse] = await Promise.all([
+                axios.get(
+                  `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${post.id}/likes/check`,
+                  { headers }
+                ),
+                axios.get(
+                  `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${post.id}/comments/check`,
+                  { headers }
+                )
+              ]);
+
+              console.log(`Post ${post.id} - liked: ${likeResponse.data.data}, hasCommented: ${commentResponse.data.data}`);
+              
+              return { 
+                ...post, 
+                liked: likeResponse.data.data,
+                hasCommented: commentResponse.data.data
+              };
             } catch (error) {
-              return { ...post, liked: false };
+              console.error(`Error checking post ${post.id}:`, error);
+              return { ...post, liked: false, hasCommented: false };
             }
           })
         );
-        setPosts(postsWithLikeStatus);
+        setPosts(postsWithStatus);
       } else {
-        setPosts(postsData);
+        setPosts(postsData.map(post => ({ ...post, liked: false, hasCommented: false })));
       }
     } catch (error) {
       console.error('게시글 조회 실패:', error);
@@ -259,8 +271,14 @@ const CommunityList = () => {
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <MessageCircle className="h-4 w-4 text-gray-500" />
-                          <span className="text-gray-500">{post.commentCount || 0}</span>
+                          <MessageCircle 
+                            className={`h-4 w-4 ${
+                              post.hasCommented ? 'fill-blue-500 text-blue-500' : 'text-gray-500'
+                            }`} 
+                          />
+                          <span className={`${post.hasCommented ? 'text-blue-500' : 'text-gray-500'}`}>
+                            {post.commentCount || 0}
+                          </span>
                         </div>
                       </div>
                     </div>

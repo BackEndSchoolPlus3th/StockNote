@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
+// eslint-disable-next-line react/prop-types
 const CommunitySidebar = ({ onSearch }) => {
   const { user } = useAuth();
   const [popularPosts, setPopularPosts] = useState([]);
@@ -45,21 +46,39 @@ const CommunitySidebar = ({ onSearch }) => {
         { headers }
       );
 
-      const postsWithLikeStatus = await Promise.all(
-        response.data.data.content.map(async (post) => {
-          if (!user) return { ...post, liked: false };
-          try {
-            const likeResponse = await axios.get(
-              `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${post.id}/likes/check`,
-              { headers }
-            );
-            return { ...post, liked: likeResponse.data.data };
-          } catch (error) {
-            return { ...post, liked: false };
-          }
-        })
-      );
-      setPopularPosts(postsWithLikeStatus);
+      if (user) {
+        const postsWithStatus = await Promise.all(
+          response.data.data.content.map(async (post) => {
+            try {
+              const [likeResponse, commentResponse] = await Promise.all([
+                axios.get(
+                  `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${post.id}/likes/check`,
+                  { headers }
+                ),
+                axios.get(
+                  `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${post.id}/comments/check`,
+                  { headers }
+                )
+              ]);
+              return { 
+                ...post, 
+                liked: likeResponse.data.data,
+                hasCommented: commentResponse.data.data 
+              };
+            // eslint-disable-next-line no-unused-vars
+            } catch (error) {
+              return { ...post, liked: false, hasCommented: false };
+            }
+          })
+        );
+        setPopularPosts(postsWithStatus);
+      } else {
+        setPopularPosts(response.data.data.content.map(post => ({
+          ...post,
+          liked: false,
+          hasCommented: false
+        })));
+      }
     } catch (error) {
       console.error('인기 게시글 조회 실패:', error);
     }
@@ -244,8 +263,14 @@ const CommunitySidebar = ({ onSearch }) => {
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <MessageSquare className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm text-gray-500">{post.commentCount}</span>
+                        <MessageSquare 
+                          className={`w-4 h-4 ${
+                            post.hasCommented ? 'fill-blue-500 text-blue-500' : 'text-gray-500'
+                          }`} 
+                        />
+                        <span className={`text-sm ${post.hasCommented ? 'text-blue-500' : 'text-gray-500'}`}>
+                          {post.commentCount}
+                        </span>
                       </div>
                     </div>
                   </div>
