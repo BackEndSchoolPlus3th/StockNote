@@ -7,12 +7,14 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { LoginForm } from '@/components/login-form';
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 
 const CommunityList = () => {
   const categoryMapping = {
@@ -23,10 +25,12 @@ const CommunityList = () => {
     "뉴스분석": "NEWS"
   };
 
-  const {  user } = useAuth();
+  const {  user, isAuthenticated } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || "전체");
   const [posts, setPosts] = useState([]);
+  const [likedPosts, setLikedPosts] = useState({});
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const categories = ["전체", "자유토론", "투자분석", "질문", "뉴스분석"];
   const navigate = useNavigate();
   const [sortType, setSortType] = useState('latest'); // 정렬 타입 상태 추가
@@ -144,6 +148,14 @@ const handleSearch = async (searchKeyword) => {
     setSearchParams({ category: category });
   };
 
+  const handleCreateArticle = () => {
+    if (!isAuthenticated) {
+      setShowLoginDialog(true);
+      return;
+    }
+    navigate('/community/editor');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8">
@@ -155,9 +167,9 @@ const handleSearch = async (searchKeyword) => {
               <Button 
                 variant="outline" 
                 size="icon" 
-                className="rounded-full hover:bg-blue-200 text-bg-blue-200 w-12 h-12 p-2"
-                onClick={() => navigate('/community/editor')}
-              >
+                className="rounded-full  hover:bg-blue-200 text-bg-blue-200 w-12 h-12 p-2"
+                onClick={handleCreateArticle}
+                >
                 <Plus className="h-9 w-9" />
               </Button>
             </div>
@@ -224,7 +236,7 @@ const handleSearch = async (searchKeyword) => {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <h3 className="font-medium">{post.title}</h3>
+                          <h3 className="font-medium truncate max-w-[500px]">{post.title}</h3>
                           <div className="flex items-center gap-4 text-gray-500 text-sm">
                             <span className="font-medium text-gray-700">{post.username}</span>
                             <div className="flex items-center gap-1">
@@ -234,39 +246,10 @@ const handleSearch = async (searchKeyword) => {
                           </div>
                         </div>
                       </div>
-                      {post.authorId === user?.id && (
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent card click event
-                              navigate(`/community/article/${post.id}/editor`, {
-                                state: {
-                                  title: post.title,
-                                  body: post.body,
-                                  hashtags: post.hashtags,
-                                  isEditing: true
-                                }
-                              });
-                            }}
-                          >
-                            수정
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Add delete logic here
-                            }}
-                          >
-                            삭제
-                          </Button>
-                        </div>
-                      )}
                     </div>
-                    <p className="text-gray-600">{post.body}</p>
+                    <p className="text-gray-600 line-clamp-2 overflow-hidden mb-4 max-h-[48px] max-w-[700px] whitespace-pre-wrap break-words">
+                      {post.body.length > 150 ? `${post.body}...` : post.body}
+                    </p>
                     <div className="flex justify-between items-center mt-4">
                       <div className="flex gap-2">
                         {post.hashtags?.map((tag, index) => (
@@ -338,6 +321,10 @@ const handleSearch = async (searchKeyword) => {
           </div>
         </div>
       </main>
+      <LoginForm 
+        open={showLoginDialog} 
+        onOpenChange={setShowLoginDialog}
+      />
     </div>
   );
 };

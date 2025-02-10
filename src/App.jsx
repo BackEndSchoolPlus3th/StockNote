@@ -3,7 +3,6 @@ import Layout from './components/layout/Layout';
 import PortfolioPage from './pages/portfolio/portfolio/PortfolioPage';
 import PortfolioDetailPage from './pages/portfolio/pfStock/PortfolioDetailPage';
 import MainPage from './pages/stock/MainPage';
-import Login from './pages/Login';
 import StockMainPage from './pages/stock/stockDetail/StockMainPage';
 import StockDetailPage from './pages/stock/stockDetail/StockDetailPage';
 import Community from './pages/community/articles/Article';
@@ -31,7 +30,6 @@ function App() {
                 <Route path="/mypage" element={<MyPage />} />
 
             </Route>
-            <Route path="/login" element={<Login />} />
         </Routes>
     );
 }

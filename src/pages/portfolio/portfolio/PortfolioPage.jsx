@@ -9,10 +9,11 @@ import { useAuth } from '@/contexts/AuthContext'; //useAuth 훅 가져오기
 import axios from 'axios';
 // HistoryModal import 추가
 import HistoryModal from './HistoryModal';
+import { LoginForm } from '@/components/login-form';
 
 const PortfolioPage = () => {
     const navigate = useNavigate();
-    const { accessToken } = useAuth(); //useAuth 훅 사용해서 accessToken 가져오기
+    const { accessToken, isAuthenticated } = useAuth(); //useAuth 훅 사용해서 accessToken 가져오기
     const [portfolios, setPortfolios] = useState([]);
     const [totalStats, setTotalStats] = useState({
         totalAssets: 0,
@@ -24,6 +25,7 @@ const PortfolioPage = () => {
         description: ''
     });
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+    const [showLoginDialog, setShowLoginDialog] = useState(false);
 
     useEffect(() => {
         if (accessToken) {
@@ -88,7 +90,8 @@ const PortfolioPage = () => {
     const handleTotalAssetsClick = async () => {
         try {
             const response = await axios.get(
-                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/my`,
+                // `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/my`, //mysql
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/searchDocs/myPortfolio`,    //elastic
                 {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`
@@ -105,6 +108,14 @@ const PortfolioPage = () => {
         } catch (error) {
             console.error('내 포트폴리오 조회 실패:', error);
         }
+    };
+
+    const handleAddClick = () => {
+        if (!isAuthenticated) {
+            setShowLoginDialog(true);
+            return;
+        }
+        setIsModalOpen(true);
     };
 
     return (
@@ -125,7 +136,7 @@ const PortfolioPage = () => {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={handleAddClick}
                             >
                                 <img
                                     className="w-6 h-6"
@@ -260,6 +271,12 @@ const PortfolioPage = () => {
                     />
                 )
             }
+
+            {/* 로그인 폼 */}
+            <LoginForm 
+                open={showLoginDialog} 
+                onOpenChange={setShowLoginDialog}
+            />
         </div >
     );
 };

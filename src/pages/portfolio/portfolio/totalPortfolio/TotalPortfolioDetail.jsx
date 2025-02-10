@@ -28,8 +28,17 @@ const TotalPortfolioDetail = () => {
 
     const fetchTotalPortfolio = async () => {
         try {
+            // Mysql DB에서 데이터를 불러오는 코드
+            // const response = await axios.get(
+            //     `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/my`,
+            //     {
+            //         headers: { 'Authorization': `Bearer ${accessToken}` }
+            //     }
+            // );
+
+            // elasticsearch에서 데이터를 불러오는 코드
             const response = await axios.get(
-                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/portfolios/my`,
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/searchDocs/myPortfolio`,
                 {
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 }

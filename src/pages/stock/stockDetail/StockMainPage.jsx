@@ -4,11 +4,15 @@ import axios from 'axios'; // axios로 변경
 import StockList from "./StockList";
 import StockSearch from "./StockSearch";
 import { Button } from "@/components/ui/button";
+import { useAuth } from '@/contexts/AuthContext';
+import { LoginForm } from '@/components/login-form';
 
 const StockMainPage = () => {
   const [stocks, setStocks] = useState([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const fetchStocks = async () => {
     try {
@@ -72,6 +76,14 @@ const StockMainPage = () => {
     setIsDeleteMode(!isDeleteMode);
   };
 
+  const handleStockSearchClick = () => {
+    if (!isAuthenticated) {
+      setShowLoginDialog(true);
+      return;
+    }
+    setIsSearchOpen(true);
+  };
+
   return (
     <div className="w-full p-2">
     <div className="flex justify-center w-full">
@@ -87,7 +99,7 @@ const StockMainPage = () => {
               <div className="space-x-1">
                 <Button 
                   variant="outline"
-                  onClick={() => setIsSearchOpen(true)}
+                  onClick={handleStockSearchClick}
                 >
                   추가
                 </Button>
@@ -102,7 +114,7 @@ const StockMainPage = () => {
             ) :              
             <Button
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              onClick={() => setIsSearchOpen(true)}
+              onClick={handleStockSearchClick}
               >
               종목 추가하기
               </Button>
@@ -126,6 +138,12 @@ const StockMainPage = () => {
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onAddStock={handleAddStock} 
+      />
+
+      {/* Add LoginForm Dialog */}
+      <LoginForm 
+        open={showLoginDialog} 
+        onOpenChange={setShowLoginDialog}
       />
     </div>
   );
