@@ -181,10 +181,10 @@ const CommunitySidebar = ({ onSearch }) => {
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-start mb-1">
                     <div className="flex-1">
-                      <div className="text-lg font-medium hover:text-blue-600">
+                      <div className="text-lg font-medium hover:text-blue-600 truncate max-w-[300px]">
                         {post.title}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                      <p className="text-sm text-gray-600 mt-1 truncate max-w-[300px]">
                         {post.body}
                       </p>
                     </div>

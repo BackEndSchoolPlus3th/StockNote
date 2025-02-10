@@ -225,7 +225,9 @@ const Community = () => {
                 </div>
               </CardHeader>
               <CardContent className="px-4">
-                <p className="text-xl leading-relaxed mb-8">{post.body}</p>
+                <p className="text-xl leading-relaxed mb-8 whitespace-pre-line break-words max-w-[800px]">
+                  {post.body}
+                </p>
                 <div className="flex justify-between items-center">
                   <div className="flex gap-2">
                     {post.hashtags?.map((tag, index) => (

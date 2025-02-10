@@ -236,7 +236,7 @@ const handleSearch = async (searchKeyword) => {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <h3 className="font-medium">{post.title}</h3>
+                          <h3 className="font-medium truncate max-w-[500px]">{post.title}</h3>
                           <div className="flex items-center gap-4 text-gray-500 text-sm">
                             <span className="font-medium text-gray-700">{post.username}</span>
                             <div className="flex items-center gap-1">
@@ -246,39 +246,10 @@ const handleSearch = async (searchKeyword) => {
                           </div>
                         </div>
                       </div>
-                      {post.authorId === user?.id && (
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent card click event
-                              navigate(`/community/article/${post.id}/editor`, {
-                                state: {
-                                  title: post.title,
-                                  body: post.body,
-                                  hashtags: post.hashtags,
-                                  isEditing: true
-                                }
-                              });
-                            }}
-                          >
-                            수정
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Add delete logic here
-                            }}
-                          >
-                            삭제
-                          </Button>
-                        </div>
-                      )}
                     </div>
-                    <p className="text-gray-600">{post.body}</p>
+                    <p className="text-gray-600 line-clamp-2 overflow-hidden mb-4 max-h-[48px] max-w-[700px] whitespace-pre-wrap break-words">
+                      {post.body.length > 150 ? `${post.body}...` : post.body}
+                    </p>
                     <div className="flex justify-between items-center mt-4">
                       <div className="flex gap-2">
                         {post.hashtags?.map((tag, index) => (
