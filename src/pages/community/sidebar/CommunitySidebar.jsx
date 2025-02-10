@@ -4,15 +4,31 @@ import axios from 'axios';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Search, Heart, MessageSquare } from "lucide-react";
+import { Search, Heart, MessageSquare, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 const CommunitySidebar = ({ onSearch }) => {
   const { user } = useAuth();
   const [popularPosts, setPopularPosts] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchType, setSearchType] = useState('ALL');
   const navigate = useNavigate();
+
+  const searchTypes = {
+    'ALL': '전체',
+    'TITLE': '제목',
+    'CONTENT': '내용',
+    'HASHTAG': '해시태그',
+    'USERNAME': '작성자'
+  };
 
   const handlePostClick = (postId) => {
     navigate(`/community/article/${postId}`);
@@ -77,7 +93,7 @@ const CommunitySidebar = ({ onSearch }) => {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      onSearch(searchKeyword);
+      onSearch(searchKeyword, searchType);
     }
   };
 
@@ -105,19 +121,40 @@ const CommunitySidebar = ({ onSearch }) => {
       <div className="w-[406px]">
         <Card className="mb-4">
           <CardContent className="p-4">
-            <div className="relative">
-              <Input
-                type="search"
-                placeholder="게시글 검색"
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="pl-10"
-              />
-              <Search 
-                className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer"
-                onClick={() => onSearch(searchKeyword)}
-              />
+            <div className="space-y-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    {searchTypes[searchType]}
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[200px]">
+                  {Object.entries(searchTypes).map(([type, label]) => (
+                    <DropdownMenuItem
+                      key={type}
+                      onClick={() => setSearchType(type)}
+                    >
+                      {label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <div className="relative">
+                <Input
+                  type="search"
+                  placeholder="게시글 검색"
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="pl-10"
+                />
+                <Search 
+                  className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer"
+                  onClick={() => onSearch(searchKeyword, searchType)}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
