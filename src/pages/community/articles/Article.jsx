@@ -2,7 +2,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import CommunitySidebar from "@/components/sidebar/CommunitySidebar";
+import CommunitySidebar from "@/pages/community/sidebar/CommunitySidebar";
 import { ArrowLeft, Heart } from "lucide-react"; // Heart 아이콘 import 추가
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
