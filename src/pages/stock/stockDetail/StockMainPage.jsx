@@ -6,6 +6,8 @@ import StockSearch from "./StockSearch";
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginForm } from '@/components/login-form';
+import { useLocation } from "react-router-dom";
+
 
 const StockMainPage = () => {
   const [stocks, setStocks] = useState([]);
@@ -13,7 +15,7 @@ const StockMainPage = () => {
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const { isAuthenticated } = useAuth();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
-
+  const location = useLocation();
   const fetchStocks = async () => {
     try {
       const token = localStorage.getItem('accessToken');
@@ -22,7 +24,7 @@ const StockMainPage = () => {
         return;
       }
 
-      const response = await fetch("/api/v1/stocks/list", {
+      const response = await fetch(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stocks/list`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -32,11 +34,13 @@ const StockMainPage = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const data = await response.json();  // ✅ 여기서 data를 선언
+      console.log("📌 받은 데이터:", data);
 
-      const data = await response.json();
-      if (data?.data) {
+      if (data?.data) { 
         setStocks(data.data);
       }
+
     } catch (error) {
       console.error("❌ 주식 데이터를 가져오는 중 오류 발생:", error);
     }
@@ -46,15 +50,12 @@ const StockMainPage = () => {
     try {
       const token = localStorage.getItem('accessToken');
       
-      const response = await axios.delete(`/api/v1/stocks`, {
-        params: {
-          stockCode: stockCode
-        },
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await axios.delete(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stocks`, {
+        params: { stockCode: stockCode },
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-  
+      
+
       if (response.status === 200) {
         await fetchStocks();
       }
