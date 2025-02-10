@@ -9,6 +9,8 @@ import HeaderSearch from './HeaderSearch';
 import KeywordPopup from '@/components/keyword/KeywordPopup';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FiMenu } from 'react-icons/fi';
+import logo from "../../assets/logo.png";
+
 
 import {
   NavigationMenu,
@@ -185,7 +187,7 @@ export default function Frame() {
 
         <Link to="/" className="flex items-center cursor-pointer mr-8">
         <img 
-          src="/src/assets/logo.png" 
+          src={logo}
           alt="StockNote Logo" 
           className="h-14"
         />

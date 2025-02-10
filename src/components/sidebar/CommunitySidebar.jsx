@@ -84,6 +84,10 @@ const CommunitySidebar = ({ onSearch }) => {
     }
   };
 
+  const handleStockClick = (stockCode) => {
+    navigate(`/stocks/${stockCode}`); // 종목 상세 페이지 경로에 맞게 수정해주세요
+  };
+
   // 날짜 포맷팅 함수 추가
   const formatDate = (date) => {
     const now = new Date();
@@ -136,7 +140,11 @@ const CommunitySidebar = ({ onSearch }) => {
         </CardHeader>
         <CardContent>
           {popularVotes.map((item, index) => (
-            <div key={index} className="mb-4">
+            <div 
+            key={index} 
+            className="mb-4 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors" 
+            onClick={() => handleStockClick(item.stockCode)}
+          >
               <h3 className="text-lg mb-2">{item.stockName}</h3>
               <div className="flex items-center gap-2 flex-nowrap">
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
