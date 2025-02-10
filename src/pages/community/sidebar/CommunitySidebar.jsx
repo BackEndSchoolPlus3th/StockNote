@@ -105,10 +105,6 @@ const CommunitySidebar = ({ onSearch }) => {
       <div className="w-[406px]">
         <Card className="mb-4">
           <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Search className="h-5 w-5" />
-              <span className="text-gray-500">게시글 검색</span>
-            </div>
             <div className="relative">
               <Input
                 type="search"
