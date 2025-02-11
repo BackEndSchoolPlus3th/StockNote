@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import CommunitySidebar from "@/pages/community/sidebar/CommunitySidebar";
-import { ArrowLeft, Heart } from "lucide-react"; // Heart 아이콘 import 추가
+import { ArrowLeft, Heart } from "lucide-react";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginForm } from '@/components/login-form';
+import SearchResults from './SearchResults';
 
 const Community = () => {
   const { id } = useParams();
@@ -17,6 +18,12 @@ const Community = () => {
   const [isLiked, setIsLiked] = useState(false);
   const { isAuthenticated } = useAuth();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const { user } = useAuth();
+  const [newComment, setNewComment] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editContent, setEditContent] = useState('');
 
   const fetchArticle = async () => {
     try {
@@ -58,28 +65,37 @@ const Community = () => {
           }
         }
       );
-      fetchArticle(); // 게시글 정보 새로고침
-      setIsLiked(!isLiked); // 좋아요 상태 토글
+      fetchArticle();
+      setIsLiked(!isLiked);
     } catch (error) {
       console.error('좋아요 토글 실패:', error);
     }
   };
 
-  useEffect(() => {
-    fetchArticle();
-  }, [id]);
-
-  useEffect(() => {
-    if (post) {
-      checkLikeStatus();
+  const handleSearch = async (searchKeyword, searchType = 'ALL') => {
+    if (!searchKeyword.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
     }
-  }, [post]);
-
-  const {  user } = useAuth();
-  const [newComment, setNewComment] = useState('');
-  const [editingCommentId, setEditingCommentId] = useState(null);
-  const [editContent, setEditContent] = useState('');
-
+  
+    setIsSearching(true);
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/search`,
+        {
+          params: {
+            keyword: searchKeyword,
+            searchType: searchType
+          }
+        }
+      );
+      setSearchResults(response.data.data.content);
+    } catch (error) {
+      console.error('검색 실패:', error);
+      setSearchResults([]);
+    }
+  };
 
   const handleAddComment = async (e) => {
     e.preventDefault();
@@ -109,7 +125,6 @@ const Community = () => {
 
   const handleEditComment = async (commentId) => {
     try {
-      console.log(editContent);
       await axios.patch(
         `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${id}/comments/${commentId}`,
         { body: editContent },
@@ -156,7 +171,7 @@ const Community = () => {
           }
         }
       );
-      navigate('/community/articles'); // Redirect to articles list
+      navigate('/community/articles');
     } catch (error) {
       console.error('게시글 삭제 실패:', error);
       alert('게시글 삭제에 실패했습니다.');
@@ -164,35 +179,14 @@ const Community = () => {
   };
 
   useEffect(() => {
+    fetchArticle();
   }, [id]);
 
-  //  주석 처리 (handleAddComment가 동일한 기능 수행)
-  /*
-  const handleSubmitComment = async (e) => {
-    e.preventDefault();
-    
-    if (!isAuthenticated) {
-      setShowLoginDialog(true);
-      return;
+  useEffect(() => {
+    if (post) {
+      checkLikeStatus();
     }
-
-    try {
-      await axios.post(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${id}/comments`,
-        { body: content },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        }
-      );
-      setContent('');
-      fetchArticle();
-    } catch (error) {
-      console.error('댓글 작성 실패:', error);
-    }
-  };
-  */
+  }, [post]);
 
   if (!post) return <div>Loading...</div>;
 
@@ -259,37 +253,62 @@ const Community = () => {
                 </div>
               </CardContent>
               {post.authorId === user?.id && (
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent card click event
-                              navigate(`/community/article/${post.id}/editor`, {
-                                state: {
-                                  title: post.title,
-                                  body: post.body,
-                                  hashtags: post.hashtags,
-                                  isEditing: true
-                                }
-                              });
-                            }}
-                          >
-                            수정
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteArticle();
-                            }}
-                          >
-                            삭제
-                          </Button>
-                        </div>
-                      )}
+                <div className="flex gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/community/article/${post.id}/editor`, {
+                        state: {
+                          title: post.title,
+                          body: post.body,
+                          hashtags: post.hashtags,
+                          isEditing: true
+                        }
+                      });
+                    }}
+                  >
+                    수정
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteArticle();
+                    }}
+                  >
+                    삭제
+                  </Button>
+                </div>
+              )}
             </Card>
+
+            {isSearching && (
+              <div className="mt-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold">검색 결과</h2>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => {
+                      setIsSearching(false);
+                      setSearchResults([]);
+                    }}
+                  >
+                    검색 결과 닫기
+                  </Button>
+                </div>
+                <SearchResults 
+                  posts={searchResults} 
+                  onPostClick={(postId) => {
+                    navigate(`/community/article/${postId}`);
+                    setIsSearching(false);
+                    setSearchResults([]);
+                  }} 
+                />
+              </div>
+            )}
 
             <Card className="mt-4">
               <CardContent className="p-4">
@@ -304,37 +323,36 @@ const Community = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
-                          <AvatarImage 
-                                src={comment.profile || '/default-avatar.png'} 
-                              />
+                            <AvatarImage 
+                              src={comment.profile || '/default-avatar.png'} 
+                            />
                           </Avatar>
                           <span className="font-medium">{comment.author}</span>
                           <span className="text-gray-500 text-sm">
                             {new Date(comment.createdAt).toLocaleDateString()}
                           </span>
                         </div>
-                        {/* Comment Actions */}
-                        {comment.authorId === user.id && editingCommentId !== comment.id &&(
-                        <div className="flex gap-2 shrink-0">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => {
-                              setEditingCommentId(comment.id);
-                              setEditContent(comment.body);
-                            }}
-                          >
-                            수정
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDeleteComment(comment.id)}
-                          >
-                            삭제
-                          </Button>
-                        </div>
-                          )}
+                        {comment.authorId === user?.id && editingCommentId !== comment.id && (
+                          <div className="flex gap-2 shrink-0">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setEditingCommentId(comment.id);
+                                setEditContent(comment.body);
+                              }}
+                            >
+                              수정
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleDeleteComment(comment.id)}
+                            >
+                              삭제
+                            </Button>
+                          </div>
+                        )}
                       </div>
                       
                       {editingCommentId === comment.id ? (
@@ -384,8 +402,7 @@ const Community = () => {
           </div>
 
           {/* Sidebar */}
-            <CommunitySidebar />
-    
+          <CommunitySidebar onSearch={handleSearch} />
         </div>
       </main>
       <LoginForm 
