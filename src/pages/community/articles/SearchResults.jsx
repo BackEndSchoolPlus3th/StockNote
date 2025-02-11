@@ -44,25 +44,36 @@ const SearchResults = ({ posts, onPostClick }) => {
                 </div>
               </div>
             </div>
-            <p className="text-gray-600 line-clamp-2 overflow-hidden mb-4">
-              {post.body}
+            <p className="text-gray-600 line-clamp-2 overflow-hidden mb-4 max-h-[48px] max-w-[700px] whitespace-pre-wrap break-words">
+              {post.body.length > 150 ? `${post.body.substring(0, 150)}...` : post.body}
             </p>
             <div className="flex justify-between items-center mt-4">
               <div className="flex gap-2">
                 {post.hashtags?.map((tag, index) => (
-                  <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                  <span 
+                    key={index} 
+                    className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm"
+                  >
                     #{tag}
                   </span>
                 ))}
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
-                  <Heart className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-500">{post.likeCount || 0}</span>
+                  <Heart 
+                    className={`h-4 w-4 ${post.liked ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} 
+                  />
+                  <span className={`${post.liked ? 'text-red-500' : 'text-gray-500'}`}>
+                    {post.likeCount || 0}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <MessageCircle className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-500">{post.commentCount || 0}</span>
+                  <MessageCircle 
+                    className={`h-4 w-4 ${post.hasCommented ? 'fill-blue-500 text-blue-500' : 'text-gray-500'}`} 
+                  />
+                  <span className={`${post.hasCommented ? 'text-blue-500' : 'text-gray-500'}`}>
+                    {post.commentCount || 0}
+                  </span>
                 </div>
               </div>
             </div>
