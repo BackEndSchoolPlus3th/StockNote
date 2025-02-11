@@ -101,29 +101,84 @@ const CommunityList = () => {
     }
   };
 
-  const handleSearch = async (searchKeyword, searchType = 'ALL') => {
-    if (!searchKeyword.trim()) {
-      fetchPosts(selectedCategory);
-      return;
-    }
+  // Articles.jsx의 handleSearch 함수 부분만 발췌
+const handleSearch = async (searchKeyword, searchType = 'ALL') => {
+  if (!searchKeyword.trim()) {
+    fetchPosts(selectedCategory);
+    return;
+  }
 
-    try {
-      const response = await axios.get(
-        // `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/search`,
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/searchDocs/post/search`,
-        {
-          params: {
-            keyword: searchKeyword,
-            searchType: searchType,
-            category: selectedCategory !== "전체" ? categoryMapping[selectedCategory] : null
-          }
+  try {
+    // 먼저 엘라스틱서치로 검색 결과를 가져옴
+    const searchResponse = await axios.get(
+      `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/searchDocs/post/search`,
+      {
+        params: {
+          keyword: searchKeyword,
+          searchType: searchType,
+          category: selectedCategory !== "전체" ? categoryMapping[selectedCategory] : null
         }
+      }
+    );
+
+    // 검색된 각 게시글의 상세 정보를 가져옴 (hashtags 포함)
+    const postsWithDetails = await Promise.all(
+      searchResponse.data.data.content.map(async (post) => {
+        try {
+          const detailResponse = await axios.get(
+            `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${post.id}`
+          );
+          return {
+            ...post,
+            hashtags: detailResponse.data.data.hashtags || []
+          };
+        } catch (error) {
+          console.error(`Error fetching details for post ${post.id}:`, error);
+          return { ...post, hashtags: [] };
+        }
+      })
+    );
+
+    // 사용자가 로그인한 경우 좋아요와 댓글 상태도 함께 가져옴
+    if (user) {
+      const headers = {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+      };
+
+      const postsWithStatus = await Promise.all(
+        postsWithDetails.map(async (post) => {
+          try {
+            const [likeResponse, commentResponse] = await Promise.all([
+              axios.get(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${post.id}/likes/check`,
+                { headers }
+              ),
+              axios.get(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/${post.id}/comments/check`,
+                { headers }
+              )
+            ]);
+
+            return {
+              ...post,
+              liked: likeResponse.data.data,
+              hasCommented: commentResponse.data.data
+            };
+          } catch (error) {
+            console.error(`Error checking status for post ${post.id}:`, error);
+            return { ...post, liked: false, hasCommented: false };
+          }
+        })
       );
-      setPosts(response.data.data.content);
-    } catch (error) {
-      console.error('검색 실패:', error);
+      setPosts(postsWithStatus);
+    } else {
+      setPosts(postsWithDetails.map(post => ({ ...post, liked: false, hasCommented: false })));
     }
-  };
+  } catch (error) {
+    console.error('검색 실패:', error);
+    setPosts([]);
+  }
+};
 
   const handleSortChange = (newSortType) => {
     setSortType(newSortType);
