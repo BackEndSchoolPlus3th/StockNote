@@ -34,7 +34,8 @@ const HeaderSearch = () => {
             setIsDropdownVisible(true);
             try {
                 const response = await axios.post(
-                    `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stocks/search-stocks`,
+                    // `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stocks/search-stocks`,
+                    `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/searchDocs/stock`,
                     { keyword: value },
                     {
                         headers: { 'Content-Type': 'application/json' }

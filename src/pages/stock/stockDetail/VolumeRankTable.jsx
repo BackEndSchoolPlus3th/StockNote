@@ -9,7 +9,7 @@ const VolumeRankTable = () => {
   useEffect(() => {
     const fetchVolumeData = async () => {
       try {
-        const response = await axios.get('/api/v1/stockApis/volume');
+        const response = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stockApis/volume`);
         setVolumeData(response.data.output);
         setLoading(false);
       } catch (error) {
@@ -21,7 +21,7 @@ const VolumeRankTable = () => {
     fetchVolumeData();
     // 1분마다 데이터 갱신
     const interval = setInterval(fetchVolumeData, 60000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -46,7 +46,7 @@ const VolumeRankTable = () => {
             {new Date().toLocaleTimeString()} 기준
           </span>
         </div>
-        
+
         {/* Header */}
         <div className="grid grid-cols-4 text-sm text-gray-500 mb-2 px-2">
           <div>종목</div>
@@ -58,7 +58,7 @@ const VolumeRankTable = () => {
         {/* Stock List */}
         <div className="space-y-1">
           {volumeData.map((stock, index) => (
-            <div 
+            <div
               key={stock.stck_shrn_iscd}
               className={`grid grid-cols-4 items-center py-3 px-2 hover:bg-gray-50 cursor-pointer
                 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
@@ -77,13 +77,12 @@ const VolumeRankTable = () => {
               </div>
 
               {/* 등락률 */}
-              <div className={`text-right ${
-                parseFloat(stock.prdy_ctrt) > 0 
-                  ? 'text-red-500' 
-                  : parseFloat(stock.prdy_ctrt) < 0 
-                    ? 'text-blue-500' 
-                    : 'text-gray-500'
-              }`}>
+              <div className={`text-right ${parseFloat(stock.prdy_ctrt) > 0
+                ? 'text-red-500'
+                : parseFloat(stock.prdy_ctrt) < 0
+                  ? 'text-blue-500'
+                  : 'text-gray-500'
+                }`}>
                 {parseFloat(stock.prdy_vrss) > 0 ? '+' : ''}
                 {parseInt(stock.prdy_vrss).toLocaleString()}원
                 <br />
