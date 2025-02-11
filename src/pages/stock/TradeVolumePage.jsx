@@ -13,25 +13,29 @@ const TradeVolumePage = ({ onUpdateDate }) => {
     const ITEMS_PER_GROUP = 5;
     const EXPANDED_ITEMS = 10;
 
-    const formatDateForAPI = (date) => {
-        return date.toISOString().slice(0, 10).replace(/-/g, '');
-    };
-
-    const fetchData = async (targetDate) => {
+    const fetchData = async () => {
         try {
-            const formattedDate = formatDateForAPI(targetDate);
-            const response = await axios.get(`${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stockApis/volume`, {
-                params: { date: formattedDate }
-            });
-
-            if (response.data?.data) {
-                setVolumeData(response.data.data);
-                onUpdateDate(targetDate);
-                return true;
+            const response = await axios.get(
+                `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/stockApis/volume`,
+                {
+                    timeout: 10000
+                }
+            );
+    
+            if (response.data?.output) {
+                if (Array.isArray(response.data.output) && response.data.output.length > 0) {
+                    setVolumeData(response.data.output);
+                    onUpdateDate(new Date());
+                    return true;
+                }
             }
             return false;
         } catch (err) {
-            console.error('Error details:', err);
+            console.error('Error fetching volume data:', {
+                message: err.message,
+                response: err.response?.data,
+                status: err.response?.status
+            });
             return false;
         }
     };
@@ -40,44 +44,18 @@ const TradeVolumePage = ({ onUpdateDate }) => {
         const loadData = async () => {
             setIsLoading(true);
             setError(null);
-
-            const now = new Date();
-            const kstOffset = 9 * 60;
-            const localOffset = now.getTimezoneOffset();
-            const totalOffset = kstOffset + localOffset;
-            let targetDate = new Date(now.getTime() + totalOffset * 60 * 1000);
-
-            let success = false;
-            let attempts = 0;
-            const maxAttempts = 5;
-
-            while (!success && attempts < maxAttempts) {
-                const day = targetDate.getDay();
-                if (day === 0) {
-                    targetDate.setDate(targetDate.getDate() - 2);
-                } else if (day === 6) {
-                    targetDate.setDate(targetDate.getDate() - 1);
-                }
-
-                success = await fetchData(targetDate);
-
-                if (!success) {
-                    targetDate.setDate(targetDate.getDate() - 1);
-                    attempts++;
-                }
-            }
-
-
+            
+            const success = await fetchData();
+            
             if (!success) {
-                setError('최근 5일간의 거래 데이터를 찾을 수 없습니다.');
+                setError('거래량 데이터를 찾을 수 없습니다. 잠시 후 다시 시도해주세요.');
             }
-
+            
             setIsLoading(false);
         };
 
         loadData();
     }, [onUpdateDate]);
-
 
     const handleNextGroup = () => {
         setCurrentGroupIndex(prev => prev + 1);
@@ -115,7 +93,6 @@ const TradeVolumePage = ({ onUpdateDate }) => {
     const currentItems = volumeData.slice(startIndex, endIndex);
 
     return (
-
         <div className="space-y-6 pb-2">
             <div className="rounded-2xl overflow-hidden bg-white">
                 <div className="px-4 py-3 flex justify-between items-center">
@@ -154,21 +131,33 @@ const TradeVolumePage = ({ onUpdateDate }) => {
                                         <div className="font-medium text-gray-900">{item.hts_kor_isnm}</div>
                                     </td>
                                     <td className="w-32 px-4 py-3 text-right font-medium text-gray-900">
-                                        {Number(item.stck_prpr).toLocaleString()}원
+                                        <div className="flex items-center justify-end whitespace-nowrap">
+                                            <span>{Number(item.stck_prpr).toLocaleString()}</span>
+                                            <span className="text-sm ml-0.5">원</span>
+                                        </div>
                                     </td>
-                                    <td className={`w-32 px-4 py-3 text-right font-medium ${item.prdyVrssSign === '2' ? 'text-red-500' :
-                                            item.prdyVrssSign === '5' ? 'text-blue-500' : 'text-gray-900'
-                                        }`}>
-                                        {item.prdyVrssSign === '2' ? '+' :
-                                            item.prdyVrssSign === '5' ? '-' : ''}
-                                        {Number(item.prdy_vrss).toLocaleString()}원
+                                    <td className={`w-32 px-4 py-3 text-right font-medium ${
+                                        item.prdy_vrss_sign === '2' ? 'text-red-500' :
+                                        item.prdy_vrss_sign === '5' ? 'text-blue-500' : 'text-gray-900'
+                                    }`}>
+                                        <div className="flex items-center justify-end whitespace-nowrap">
+                                            <span>
+                                                {item.prdy_vrss_sign === '2' ? '+' :
+                                                 item.prdy_vrss_sign === '5' ? '-' : ''}
+                                                {Number(item.prdy_vrss).toLocaleString()}
+                                            </span>
+                                            <span className="text-sm ml-0.5">원</span>
+                                        </div>
                                     </td>
-                                    <td className={`w-28 px-4 py-3 text-right font-medium ${item.prdyVrssSign === '2' ? 'text-red-500' :
-                                            item.prdyVrssSign === '5' ? 'text-blue-500' : 'text-gray-900'
-                                        }`}>
-                                        {item.prdyVrssSign === '2' ? '+' :
-                                            item.prdyVrssSign === '5' ? '-' : ''}
-                                        {item.prdy_ctrt}%
+                                    <td className={`w-28 px-4 py-3 text-right font-medium ${
+                                        item.prdy_vrss_sign === '2' ? 'text-red-500' :
+                                        item.prdy_vrss_sign === '5' ? 'text-blue-500' : 'text-gray-900'
+                                    }`}>
+                                        <div className="whitespace-nowrap">
+                                            {item.prdy_vrss_sign === '2' ? '+' :
+                                             item.prdy_vrss_sign === '5' ? '-' : ''}
+                                            {item.prdy_ctrt}%
+                                        </div>
                                     </td>
                                     <td className="w-32 px-4 py-3 text-right text-gray-600">
                                         {Number(item.acml_vol).toLocaleString()}
