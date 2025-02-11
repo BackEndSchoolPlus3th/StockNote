@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback,AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Heart, Plus, MessageCircle } from "lucide-react";
@@ -8,7 +8,7 @@ import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LoginForm } from '@/components/login-form';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -25,7 +25,7 @@ const CommunityList = () => {
     "뉴스분석": "NEWS"
   };
 
-  const {  user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || "전체");
   const [posts, setPosts] = useState([]);
@@ -41,8 +41,8 @@ const CommunityList = () => {
       const mappedCategory = categoryMapping[category];
       const pageParam = `page=${page}&size=10`;
       let url;
-      
-      switch(sort) {
+
+      switch (sort) {
         case 'likes':
           url = `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/popular/likes?${pageParam}`;
           break;
@@ -80,9 +80,9 @@ const CommunityList = () => {
               ]);
 
               console.log(`Post ${post.id} - liked: ${likeResponse.data.data}, hasCommented: ${commentResponse.data.data}`);
-              
-              return { 
-                ...post, 
+
+              return {
+                ...post,
                 liked: likeResponse.data.data,
                 hasCommented: commentResponse.data.data
               };
@@ -109,7 +109,8 @@ const CommunityList = () => {
 
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/search`,
+        // `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/posts/search`,
+        `${import.meta.env.VITE_CORE_API_BASE_URL}/api/v1/searchDocs/post/search`,
         {
           params: {
             keyword: searchKeyword,
@@ -165,26 +166,25 @@ const CommunityList = () => {
           <div className="flex-1">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-3xl font-bold">커뮤니티</h1>
-              <Button 
-                variant="outline" 
-                size="icon" 
+              <Button
+                variant="outline"
+                size="icon"
                 className="rounded-full  hover:bg-blue-200 text-bg-blue-200 w-12 h-12 p-2"
                 onClick={handleCreateArticle}
-                >
+              >
                 <Plus className="h-9 w-9" />
               </Button>
             </div>
-            
+
             <div className="flex justify-between items-center mb-8">
               <div className="flex gap-3">
                 {categories.map((category, index) => (
                   <button
                     key={index}
-                    className={`px-4 py-2 rounded-full font-medium ${
-                      selectedCategory === category 
-                        ? "bg-blue-500 text-white" 
-                        : "bg-blue-100 text-blue-800 hover:bg-blue-200"
-                    }`}
+                    className={`px-4 py-2 rounded-full font-medium ${selectedCategory === category
+                      ? "bg-blue-500 text-white"
+                      : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                      }`}
                     onClick={() => handleCategoryChange(category)}
                   >
                     {category}
@@ -219,8 +219,8 @@ const CommunityList = () => {
 
             <div className="space-y-4">
               {posts.map((post) => (
-                <Card 
-                  key={post.id} 
+                <Card
+                  key={post.id}
                   className="bg-white hover:shadow-md transition-shadow cursor-pointer"
                   onClick={() => handlePostClick(post.id)}
                 >
@@ -228,9 +228,9 @@ const CommunityList = () => {
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3 mb-4">
                         <Avatar className="h-10 w-10">
-                          <AvatarImage 
-                            src={post.profile || '/default-avatar.png'} 
-                            alt="User profile" 
+                          <AvatarImage
+                            src={post.profile || '/default-avatar.png'}
+                            alt="User profile"
                           />
                           <AvatarFallback>
                             {post.username?.[0]}
@@ -261,20 +261,18 @@ const CommunityList = () => {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
-                          <Heart 
-                            className={`h-4 w-4 ${
-                              post.liked ? 'fill-red-500 text-red-500' : 'text-gray-500'
-                            }`}
+                          <Heart
+                            className={`h-4 w-4 ${post.liked ? 'fill-red-500 text-red-500' : 'text-gray-500'
+                              }`}
                           />
                           <span className={`${post.liked ? 'text-red-500' : 'text-gray-500'}`}>
                             {post.likeCount || 0}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <MessageCircle 
-                            className={`h-4 w-4 ${
-                              post.hasCommented ? 'fill-blue-500 text-blue-500' : 'text-gray-500'
-                            }`} 
+                          <MessageCircle
+                            className={`h-4 w-4 ${post.hasCommented ? 'fill-blue-500 text-blue-500' : 'text-gray-500'
+                              }`}
                           />
                           <span className={`${post.hasCommented ? 'text-blue-500' : 'text-gray-500'}`}>
                             {post.commentCount || 0}
@@ -328,8 +326,8 @@ const CommunityList = () => {
           </div>
         </div>
       </main>
-      <LoginForm 
-        open={showLoginDialog} 
+      <LoginForm
+        open={showLoginDialog}
         onOpenChange={setShowLoginDialog}
       />
     </div>
