@@ -352,16 +352,31 @@ const handleSearch = async (searchKeyword, searchType = 'ALL') => {
                   이전
                 </Button>
 
-                {[...Array(totalPages)].map((_, index) => (
-                  <Button
-                    key={index}
-                    variant={currentPage === index ? "default" : "outline"}
-                    onClick={() => handlePageChange(index)}
-                    className={`w-10 h-10 ${currentPage === index ? "bg-blue-500 text-white" : ""}`}
-                  >
-                    {index + 1}
-                  </Button>
-                ))}
+                {(() => {
+                  const pages = [];
+                  let start = Math.max(0, Math.min(currentPage - 2, totalPages - 5));
+                  let end = Math.min(start + 4, totalPages - 1);
+                  
+                  if (end - start < 4) {
+                    start = Math.max(0, end - 4);
+                  }
+
+                  for (let i = start; i <= end; i++) {
+                    pages.push(
+                      <Button
+                        key={i}
+                        variant={currentPage === i ? "default" : "outline"}
+                        onClick={() => handlePageChange(i)}
+                        className={`w-10 h-10 ${
+                          currentPage === i ? "bg-blue-500 text-white" : ""
+                        }`}
+                      >
+                        {i + 1}
+                      </Button>
+                    );
+                  }
+                  return pages;
+                })()}
 
                 <Button
                   variant="outline"
