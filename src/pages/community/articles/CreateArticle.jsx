@@ -12,7 +12,7 @@ const CreateArticle = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
-    content: '',
+    body: '',
     category: '', 
     hashtags: ''
   });
@@ -113,7 +113,7 @@ const CreateArticle = () => {
     console.log(formData);
     return (
       formData.title.trim() !== '' &&
-      formData.content.trim() !== '' &&
+      formData.body.trim() !== '' &&
       formData.category !== ''
     );
   };
@@ -163,9 +163,9 @@ const CreateArticle = () => {
   const MAX_CONTENT_LENGTH = 2000;
 
   const handleContentChange = (e) => {
-    const content = e.target.value;
-    if (content.length <= MAX_CONTENT_LENGTH) {
-      setFormData({...formData, content: content});
+    const body = e.target.value;
+    if (body.length <= MAX_CONTENT_LENGTH) {
+      setFormData({...formData, body: body});
     }
   };
 
@@ -218,16 +218,16 @@ const CreateArticle = () => {
                 <Textarea
                   placeholder="내용을 입력하세요"
                   className="min-h-[200px]"
-                  value={formData.content}
+                  value={formData.body}
                   onChange={handleContentChange}
                   maxLength={MAX_CONTENT_LENGTH}
                 />
                 <div className={`text-sm text-right mt-1 ${
-                  formData.content.length > MAX_CONTENT_LENGTH * 0.9 
+                  formData.body.length > MAX_CONTENT_LENGTH * 0.9 
                     ? 'text-red-500' 
                     : 'text-gray-500'
                 }`}>
-                  {formData.content.length}/{MAX_CONTENT_LENGTH}
+                  {formData.body.length}/{MAX_CONTENT_LENGTH}
                 </div>
               </div>
               <div className="mb-4" ref={hashtagContainerRef}>
